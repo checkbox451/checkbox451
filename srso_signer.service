@@ -1,0 +1,12 @@
+[Unit]
+After=network.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=simple
+Restart=always
+Environment=API_URL=https://api.checkbox.in.ua
+EnvironmentFile=/etc/srso_signer.conf
+ExecStart=srso_signer start --login $LOGIN --password-file $PASSWORD_FILE --api-url $API_URL $KEY_PATH

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd $(dirname "$0")/../lib/checkbox.sign-linux-x86_64
+exec ./srso_signer $@
