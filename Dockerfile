@@ -23,9 +23,10 @@ RUN apt-get install -y locales unzip wget
 
 RUN wget $DOWNLOAD_URL
 RUN unzip *.zip -d $WORKDIR
+RUN rm -f *.zip
 
 COPY $KEY $KEY_PATH
-RUN echo -n $PASSWORD > $PASSWORD_FILE
+RUN test $PASSWORD && echo -n $PASSWORD > $PASSWORD_FILE || :
 
 RUN locale-gen en_US.UTF-8
 ENV LANG=en_US.UTF-8
