@@ -4,11 +4,11 @@ ARG ACSK
 ARG LOGIN
 ARG KEY
 ARG PASSWORD
+ARG API_URL
 
 ARG KEY_PATH=/key.dat
 ARG PASSWORD_FILE=/password.txt
 
-ARG API_URL=https://api.checkbox.in.ua
 ARG DOWNLOAD_URL=https://agents.checkbox.in.ua/agents/checkboxAgentSign/Linux/checkbox.sign-linux-x86_64.zip
 ARG WORKDIR=/checkbox.sign
 
@@ -32,4 +32,4 @@ RUN locale-gen en_US.UTF-8
 ENV LANG=en_US.UTF-8
 
 WORKDIR $WORKDIR
-CMD echo $ACSK | ./srso_signer setup && ./srso_signer start --login $LOGIN --password-file $PASSWORD_FILE --api-url $API_URL $KEY_PATH
+CMD echo $ACSK | ./srso_signer setup && ./srso_signer start --login $LOGIN --password-file $PASSWORD_FILE ${API_URL:+--api-url $API_URL }--infinity $KEY_PATH
