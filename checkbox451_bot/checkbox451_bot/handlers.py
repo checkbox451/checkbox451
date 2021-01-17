@@ -56,7 +56,7 @@ async def sell(message: Message):
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=keyboard,
     )
-    await message.answer(msg.RECEIPT_DONE, reply_markup=kbd.start)
+    await start(message)
 
 
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith("print:"))
