@@ -1,5 +1,4 @@
 /.idea/
-/lib/
-/*.jks
-/*.dat
-/*.tar
+*.jks
+*.dat
+*.tar
