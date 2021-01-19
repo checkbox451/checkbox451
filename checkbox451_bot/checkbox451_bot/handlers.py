@@ -1,4 +1,5 @@
 import os
+import re
 
 from aiogram import Bot, Dispatcher
 from aiogram.types import (
@@ -9,12 +10,20 @@ from aiogram.types import (
     ParseMode,
 )
 
-from . import auth, kbd, msg
+from . import auth, checkbox_api, kbd, msg
 from .goods import goods
 
 token = os.environ["TOKEN"]
 bot = Bot(token)
 dp = Dispatcher(bot)
+
+
+async def error(message, exception):
+    await message.answer(
+        f"*Помилка:* `{exception!s}`",
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=kbd.start,
+    )
 
 
 @dp.message_handler(commands=["start"])
@@ -38,21 +47,28 @@ async def create(message: Message):
     await message.answer(msg.SELECT_GOOD, reply_markup=kbd.goods)
 
 
-@dp.message_handler(regexp="({})".format("|".join(goods)))
+@dp.message_handler(
+    regexp="({})".format("|".join(re.escape(good) for good in goods))
+)
 @auth.require
 async def sell(message: Message):
-    good_id = goods[message.text]
+    good = goods[message.text]
+
+    try:
+        receipt_id, receipt_text = await checkbox_api.sell(good)
+    except checkbox_api.CheckboxAPIException as e:
+        return await error(message, e)
 
     keyboard = InlineKeyboardMarkup()
     keyboard.add(
         InlineKeyboardButton(
             msg.PRINT,
-            callback_data=f"print:{good_id}",
+            callback_data=f"print:{receipt_id}",
         )
     )
 
     await message.answer(
-        f"```{msg._RECEIPT}```",
+        f"```{receipt_text}```",
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=keyboard,
     )

@@ -1,28 +1,23 @@
 import functools
 import os
+from logging import getLogger
 
 from aiogram.types import Contact, Message
 
 from . import kbd, msg
 
-_roles = {}
-_users = {}
-
+log = getLogger(__name__)
 
 ADMIN = "ADMIN"
 CASHIER = "CASHIER"
 SUPERVISOR = "SUPERVISOR"
 
-
-def _init():
-    for role in (ADMIN, CASHIER, SUPERVISOR):
-        _roles[role] = list(filter(None, os.environ.get(role, "").split(",")))
-
-
-_init()
-del _init
-
-print(f"{_roles=}")
+_users = {}
+_roles = {
+    role: list(filter(None, os.environ.get(role, "").split(",")))
+    for role in (ADMIN, CASHIER, SUPERVISOR)
+}
+log.info(f"{_roles=}")
 
 
 def require(handler):
