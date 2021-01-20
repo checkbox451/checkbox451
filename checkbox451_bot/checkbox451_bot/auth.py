@@ -24,9 +24,8 @@ def require(handler):
     @functools.wraps(handler)
     async def wrapper(message: Message):
         if message.chat.id in _users:
-            await handler(message)
-        else:
-            await message.answer(msg.AUTH_REQUIRED, reply_markup=kbd.auth)
+            return await handler(message)
+        await message.answer(msg.AUTH_REQUIRED, reply_markup=kbd.auth)
 
     return wrapper
 
