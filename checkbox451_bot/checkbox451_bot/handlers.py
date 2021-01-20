@@ -1,5 +1,6 @@
 import os
 import re
+from logging import getLogger
 
 from aiogram import Bot, Dispatcher
 from aiogram.types import (
@@ -12,6 +13,8 @@ from aiogram.types import (
 
 from . import auth, checkbox_api, kbd, msg
 from .goods import goods
+
+log = getLogger(__name__)
 
 token = os.environ["TOKEN"]
 bot = Bot(token)
@@ -29,7 +32,7 @@ async def error(message, exception):
 @dp.message_handler(commands=["start"])
 @auth.require
 async def start(message: Message):
-    await message.answer(msg.ACTION, reply_markup=kbd.start)
+    await message.answer(msg.START, reply_markup=kbd.start)
 
 
 @dp.message_handler(content_types=["contact"])
@@ -56,11 +59,10 @@ async def sell(message: Message):
 
     try:
         receipt_id, receipt_text = await checkbox_api.sell(good)
-    except checkbox_api.CheckboxAPIException as e:
+    except (AssertionError, checkbox_api.CheckboxAPIException) as e:
         return await error(message, e)
 
-    keyboard = InlineKeyboardMarkup()
-    keyboard.add(
+    keyboard = InlineKeyboardMarkup().add(
         InlineKeyboardButton(
             msg.PRINT,
             callback_data=f"print:{receipt_id}",
@@ -78,4 +80,5 @@ async def sell(message: Message):
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith("print:"))
 async def print_(callback_query: CallbackQuery):
     _, receipt_id = callback_query.data.split(":")
+    log.info("print: %s", receipt_id)
     await callback_query.answer(msg.PRINTING)

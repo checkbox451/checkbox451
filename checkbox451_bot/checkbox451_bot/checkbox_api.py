@@ -91,12 +91,28 @@ async def current_shift(session):
     return result
 
 
-async def new_shift(session):
+async def open_shift(session):
     async with post(session, "/shifts", lic=True) as response:
         await raise_for_status(response)
-        result = await response.json()
+        shift = await response.json()
 
-    return result
+    shift_id = shift["id"]
+
+    for _ in range(10):
+        async with get(session, f"/shifts/{shift_id}") as response:
+            try:
+                shift = await response.json()
+            except JSONDecodeError:
+                pass
+            else:
+                if shift["status"] == "OPENED":
+                    log.info("shift: %s", shift_id)
+                    return
+
+        await asyncio.sleep(1)
+
+    log.error("shift error: %s", shift)
+    raise CheckboxAPIException("Не вдалося відкрити зміну")
 
 
 async def create_receipt(session, good):
@@ -119,6 +135,7 @@ async def create_receipt(session, good):
         receipt = await response.json()
 
     receipt_id = receipt["id"]
+
     for _ in range(10):
         async with get(session, f"/receipts/{receipt_id}") as response:
             try:
@@ -126,12 +143,14 @@ async def create_receipt(session, good):
             except JSONDecodeError:
                 pass
             else:
-                if receipt.get("status") == "DONE":
+                if receipt["status"] == "DONE":
+                    log.info("receipt: %s", receipt_id)
                     return receipt_id
 
         await asyncio.sleep(1)
 
-    raise CheckboxAPIException("Невдалося створити чек")
+    log.error("receipt error: %s", receipt)
+    raise CheckboxAPIException("Не вдалося створити чек")
 
 
 async def get_receipt_text(session, receipt_id):
@@ -143,9 +162,11 @@ async def get_receipt_text(session, receipt_id):
 
 
 async def sell(good):
+    assert good["price"] > 0, "Невірна ціна"
+
     async with aiohttp.ClientSession() as session:
         if not await current_shift(session):
-            await new_shift(session)
+            await open_shift(session)
 
         receipt_id = await create_receipt(session, good)
         receipt_text = await get_receipt_text(session, receipt_id)

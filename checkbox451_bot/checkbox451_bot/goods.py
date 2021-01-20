@@ -5,7 +5,7 @@ from . import checkbox_api
 log = getLogger(__name__)
 
 goods = {
-    f"{good['name']} {good['price']/100:.2f} грн": {
+    f"{good['name'].strip()} {good['price']/100:.2f} грн": {
         "code": good["code"],
         "name": good["name"],
         "price": good["price"],

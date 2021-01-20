@@ -23,7 +23,7 @@ log.info(f"{_roles=}")
 def require(handler):
     @functools.wraps(handler)
     async def wrapper(message: Message):
-        if message.from_user.id in _users:
+        if message.chat.id in _users:
             await handler(message)
         else:
             await message.answer(msg.AUTH_REQUIRED, reply_markup=kbd.auth)
