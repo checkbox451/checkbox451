@@ -145,7 +145,7 @@ async def create_receipt(session, good):
             else:
                 if receipt["status"] == "DONE":
                     log.info("receipt: %s", receipt_id)
-                    return receipt_id
+                    return receipt_id, receipt["tax_url"]
 
         await asyncio.sleep(1)
 
@@ -176,8 +176,8 @@ async def sell(good):
         if not await current_shift(session):
             await open_shift(session)
 
-        receipt_id = await create_receipt(session, good)
+        receipt_id, receipt_url = await create_receipt(session, good)
         receipt_text = await get_receipt_text(session, receipt_id)
         receipt_qr = await get_receipt_qrcode(session, receipt_id)
 
-        return receipt_id, receipt_text, receipt_qr
+        return receipt_id, receipt_qr, receipt_url, receipt_text

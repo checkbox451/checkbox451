@@ -59,9 +59,11 @@ async def sell(message: Message):
     good = goods[message.text]
 
     try:
-        receipt_id, receipt_text, receipt_qr = await checkbox_api.sell(good)
+        receipt_data = await checkbox_api.sell(good)
     except (AssertionError, checkbox_api.CheckboxAPIException) as e:
         return await error(message, e)
+
+    receipt_id, receipt_qr, receipt_url, receipt_text = receipt_data
 
     keyboard = InlineKeyboardMarkup().add(
         InlineKeyboardButton(
@@ -73,7 +75,7 @@ async def sell(message: Message):
     await bot.send_photo(
         message.chat.id,
         BytesIO(receipt_qr),
-        caption=f"```{receipt_text}```",
+        caption=f"{receipt_url}\n\n```{receipt_text}```",
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=keyboard,
     )
