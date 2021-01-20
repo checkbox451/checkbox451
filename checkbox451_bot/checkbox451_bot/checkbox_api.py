@@ -67,7 +67,7 @@ def goods():
 
 
 async def raise_for_status(response: ClientResponse):
-    if response.status < 400:
+    if response.ok:
         return response
 
     try:
@@ -153,6 +153,14 @@ async def create_receipt(session, good):
     raise CheckboxAPIException("Не вдалося створити чек")
 
 
+async def get_receipt_qrcode(session, receipt_id):
+    async with get(session, f"/receipts/{receipt_id}/qrcode") as response:
+        await raise_for_status(response)
+        qucode = await response.read()
+
+    return qucode
+
+
 async def get_receipt_text(session, receipt_id):
     async with get(session, f"/receipts/{receipt_id}/text", width=32) as resp:
         await raise_for_status(resp)
@@ -170,5 +178,6 @@ async def sell(good):
 
         receipt_id = await create_receipt(session, good)
         receipt_text = await get_receipt_text(session, receipt_id)
+        receipt_qr = await get_receipt_qrcode(session, receipt_id)
 
-        return receipt_id, receipt_text
+        return receipt_id, receipt_text, receipt_qr

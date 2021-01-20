@@ -1,5 +1,6 @@
 import os
 import re
+from io import BytesIO
 from logging import getLogger
 
 from aiogram import Bot, Dispatcher
@@ -58,7 +59,7 @@ async def sell(message: Message):
     good = goods[message.text]
 
     try:
-        receipt_id, receipt_text = await checkbox_api.sell(good)
+        receipt_id, receipt_text, receipt_qr = await checkbox_api.sell(good)
     except (AssertionError, checkbox_api.CheckboxAPIException) as e:
         return await error(message, e)
 
@@ -69,8 +70,10 @@ async def sell(message: Message):
         )
     )
 
-    await message.answer(
-        f"```{receipt_text}```",
+    await bot.send_photo(
+        message.chat.id,
+        BytesIO(receipt_qr),
+        caption=f"```{receipt_text}```",
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=keyboard,
     )
