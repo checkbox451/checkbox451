@@ -1,0 +1,61 @@
+import os
+from pathlib import Path
+
+from aiogram.types import Contact
+from sqlalchemy import (
+    Column,
+    ForeignKey,
+    Integer,
+    String,
+    Table,
+    create_engine,
+)
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy_utils import PhoneNumberType
+
+DB_PATH = Path(os.environ.get("DB_DIR", ".")) / "checkbox451_bot.db"
+
+Base = declarative_base()
+
+association_table = Table(
+    "user_roles",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.user_id")),
+    Column("role_name", String, ForeignKey("roles.name")),
+)
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    user_id = Column(Integer, primary_key=True)
+    phone_number = Column(PhoneNumberType(region="UA"))
+    first_name = Column(String(255))
+    last_name = Column(String(255))
+    roles = relationship(
+        "Role",
+        secondary=association_table,
+        back_populates="users",
+    )
+
+    full_name = Contact.full_name
+
+
+class Role(Base):
+    __tablename__ = "roles"
+
+    name = Column(String(10), primary_key=True)
+    users = relationship(
+        "User",
+        secondary=association_table,
+        back_populates="roles",
+    )
+
+    def __repr__(self):
+        return self.name
+
+
+engine = create_engine(f"sqlite:///{DB_PATH}")
+Base.metadata.create_all(engine)
+Session = sessionmaker(bind=engine)
