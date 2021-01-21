@@ -1,6 +1,6 @@
 AUTH_REQUIRED = "Потрібна авторизація"
 AUTHENTICATE = "Авторизуватися"
-DENIED = "Відмова"
+ADMIN_APPROVE = "Адміністратор має підтвердити"
 START = "Вітаю!"
 CREATE_RECEIPT = "Створити чек"
 PRINT = "Друкувати"
