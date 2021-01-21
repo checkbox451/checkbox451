@@ -156,9 +156,9 @@ async def create_receipt(session, good):
 async def get_receipt_qrcode(session, receipt_id):
     async with get(session, f"/receipts/{receipt_id}/qrcode") as response:
         await raise_for_status(response)
-        qucode = await response.read()
+        qrcode = await response.read()
 
-    return qucode
+    return qrcode
 
 
 async def get_receipt_text(session, receipt_id):
@@ -169,6 +169,14 @@ async def get_receipt_text(session, receipt_id):
     return receipt_text
 
 
+async def get_receipt_extra(receipt_id):
+    async with aiohttp.ClientSession() as session:
+        receipt_qr = await get_receipt_qrcode(session, receipt_id)
+        receipt_text = await get_receipt_text(session, receipt_id)
+
+    return receipt_qr, receipt_text
+
+
 async def sell(good):
     assert good["price"] > 0, "Невірна ціна"
 
@@ -177,7 +185,15 @@ async def sell(good):
             await open_shift(session)
 
         receipt_id, receipt_url = await create_receipt(session, good)
+
+        return receipt_id, receipt_url
+
+
+async def get_receipt_data(receipt_id):
+    async with aiohttp.ClientSession() as session:
+        async with get(session, f"/receipts/{receipt_id}") as response:
+            receipt_url = (await response.json())["tax_url"]
         receipt_text = await get_receipt_text(session, receipt_id)
         receipt_qr = await get_receipt_qrcode(session, receipt_id)
 
-        return receipt_id, receipt_qr, receipt_url, receipt_text
+    return receipt_qr, receipt_url, receipt_text

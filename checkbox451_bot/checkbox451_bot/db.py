@@ -41,6 +41,12 @@ class User(Base):
 
     full_name = Contact.full_name
 
+    def __str__(self):
+        return (
+            f"{self.user_id}: {self.phone_number.e164} "
+            f"({self.full_name}) {self.roles}"
+        )
+
 
 class Role(Base):
     __tablename__ = "roles"

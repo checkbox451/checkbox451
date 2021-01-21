@@ -3,7 +3,6 @@ import os
 from logging import getLogger
 
 from aiogram.types import Contact, Message
-from sqlalchemy.orm import Session
 from sqlalchemy_utils import PhoneNumber
 
 from . import db, kbd, msg
@@ -29,14 +28,15 @@ def require(role_name):
             if has_role(message.chat.id, role_name):
                 return await handler(message)
 
-            await message.answer(msg.AUTH_REQUIRED, reply_markup=kbd.auth)
+            if sign_mode or not get_role(ADMIN).users:
+                await message.answer(msg.AUTH_REQUIRED, reply_markup=kbd.auth)
 
         return wrapper
 
     return decorator
 
 
-def add_user(contact: Contact, *, session: Session):
+def add_user(contact: Contact, *, session: db.Session):
     if user := session.query(db.User).get(contact.user_id):
         pass
     else:
@@ -48,28 +48,30 @@ def add_user(contact: Contact, *, session: Session):
     return user
 
 
-def get_role(role_name: str, *, session: Session):
+def get_role(role_name: str, *, session: db.Session = None):
+    session = session or db.Session()
+
     if role := session.query(db.Role).get(role_name):
         pass
     else:
         role = db.Role(name=role_name)
         session.add(role)
+        session.commit()
 
     return role
 
 
-def add_role(user: db.User, role_name: str, *, session: Session = None):
+def add_role(user: db.User, role_name: str, *, session: db.Session):
     assert role_name in (
         ADMIN,
         CASHIER,
         SUPERVISOR,
-    ), f"Unknown role: {role_name}"
+    ), f"invalid role: {role_name}"
 
-    session = session or db.Session()
     role = get_role(role_name, session=session)
 
     user.roles.append(role)
-    log.info("%s is %s now", user.user_id, role.name)
+    log.info("%s is a %s now", user.user_id, role.name)
 
     session.commit()
 
