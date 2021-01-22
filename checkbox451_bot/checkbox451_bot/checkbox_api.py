@@ -1,11 +1,12 @@
 import asyncio
 import os
+from contextlib import asynccontextmanager
 from json import JSONDecodeError
 from logging import getLogger
 
 import aiohttp
 import requests
-from aiohttp import ClientResponse, ContentTypeError
+from aiohttp import ClientResponse, ClientTimeout, ContentTypeError
 
 log = getLogger(__name__)
 
@@ -47,9 +48,28 @@ _headers_license = {
 }
 
 
-def get(session, path, **kwargs):
+@asynccontextmanager
+async def get(session, path, **kwargs):
     url = endpoint(path)
-    return session.get(url, headers=_headers, params=kwargs)
+
+    err = None
+    for attempt in range(6):
+        try:
+            async with session.get(
+                url,
+                headers=_headers,
+                params=kwargs,
+                timeout=ClientTimeout(total=0.5 * 1.5 ** attempt),
+            ) as response:
+                yield response
+        except Exception as e:
+            err = e
+            log.warning("retry attempt: %s", attempt + 1)
+            continue
+        else:
+            return
+
+    raise err
 
 
 def post(session, path, lic=False, **kwargs):
