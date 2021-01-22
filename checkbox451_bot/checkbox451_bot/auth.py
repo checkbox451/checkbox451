@@ -1,8 +1,9 @@
 import functools
 import os
 from logging import getLogger
+from typing import Union
 
-from aiogram.types import Contact, Message
+from aiogram.types import CallbackQuery, Contact, Message
 from sqlalchemy_utils import PhoneNumber
 
 from . import db, kbd, msg
@@ -24,11 +25,17 @@ sign_mode = False
 def require(role_name):
     def decorator(handler):
         @functools.wraps(handler)
-        async def wrapper(message: Message):
+        async def wrapper(arg: Union[CallbackQuery, Message]):
+            if isinstance(arg, CallbackQuery):
+                message = arg.message
+            else:
+                message = arg
             if has_role(message.chat.id, role_name):
-                return await handler(message)
+                return await handler(arg)
 
             if sign_mode or not get_role(ADMIN).users:
+                if arg is not message:
+                    await arg.answer(msg.AUTH_REQUIRED)
                 await message.answer(msg.AUTH_REQUIRED, reply_markup=kbd.auth)
 
         return wrapper
@@ -43,7 +50,7 @@ def add_user(contact: Contact, *, session: db.Session):
         user = db.User(**contact.values)
         session.add(user)
         session.commit()
-        log.info("new user: %s", contact)
+        log.info("new user: %s", user)
 
     return user
 
@@ -85,7 +92,7 @@ def sign_in(contact: Contact):
         if user.phone_number in _admins:
             add_role(user, ADMIN, session=session)
 
-        return user.roles
+        return user
 
 
 def has_role(user_id, role_name):

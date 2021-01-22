@@ -64,14 +64,16 @@ async def start(message: Message):
 @error_handler
 async def contact(message: Message):
     if message.contact is not None:
-        if auth.sign_in(message.contact):
-            return await start(message)
+        user = auth.sign_in(message.contact)
+        if user and user.roles:
+            return
+
         await message.answer(msg.ADMIN_APPROVE, reply_markup=kbd.remove)
         await broadcast(
             message.chat.id,
             auth.ADMIN,
             bot.send_message,
-            f"new user: {message.contact}",
+            f"new user: {user}",
         )
 
 
