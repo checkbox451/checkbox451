@@ -11,7 +11,7 @@ from sqlalchemy import (
     create_engine,
 )
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.orm import relationship, scoped_session, sessionmaker
 from sqlalchemy_utils import PhoneNumberType
 
 DB_PATH = Path(os.environ.get("DB_DIR", ".")) / "checkbox451_bot.db"
@@ -64,4 +64,4 @@ class Role(Base):
 
 engine = create_engine(f"sqlite:///{DB_PATH}")
 Base.metadata.create_all(engine)
-Session = sessionmaker(bind=engine)
+Session = scoped_session(sessionmaker(bind=engine))
