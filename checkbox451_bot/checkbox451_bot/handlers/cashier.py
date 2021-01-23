@@ -4,7 +4,7 @@ from logging import getLogger
 from aiogram.types import CallbackQuery, Message
 
 from .. import auth, checkbox_api, goods, kbd, msg
-from . import bot, error, helpers
+from . import bot, helpers
 
 log = getLogger(__name__)
 
@@ -12,13 +12,13 @@ log = getLogger(__name__)
 def init(dispatcher):
     @dispatcher.message_handler(commands=["start"])
     @auth.require(auth.CASHIER)
-    @error.error_handler
+    @helpers.error_handler
     async def start(message: Message):
         await helpers.start(message)
 
     @dispatcher.message_handler(lambda m: m.text in goods.items)
     @auth.require(auth.CASHIER)
-    @error.error_handler
+    @helpers.error_handler
     async def sell(message: Message):
         await bot.send_chat_action(message.chat.id, "typing")
 
@@ -62,7 +62,7 @@ def init(dispatcher):
         lambda c: c.data and c.data.startswith("print:")
     )
     @auth.require(auth.CASHIER)
-    @error.error_handler
+    @helpers.error_handler
     async def print_receipt(callback_query: CallbackQuery):
         _, receipt_id = callback_query.data.split(":")
         log.info("print: %s", receipt_id)
@@ -70,6 +70,6 @@ def init(dispatcher):
 
     @dispatcher.message_handler(regexp=re.escape(msg.CREATE_RECEIPT))
     @auth.require(auth.CASHIER)
-    @error.error_handler
+    @helpers.error_handler
     async def create(message: Message):
         await message.answer(msg.SELECT_GOOD, reply_markup=kbd.goods)

@@ -1,13 +1,13 @@
 from aiogram.types import Message
 
 from .. import auth, checkbox_api, db, kbd, msg
-from . import bot, error, helpers
+from . import bot, helpers
 
 
 def init(dispatcher):
     @dispatcher.message_handler(commands=["users"])
     @auth.require(auth.ADMIN)
-    @error.error_handler
+    @helpers.error_handler
     async def users(message: Message):
         session = db.Session()
         users_repr = [str(u) for u in session.query(db.User)]
@@ -16,7 +16,7 @@ def init(dispatcher):
 
     @dispatcher.message_handler(commands=["sign"])
     @auth.require(auth.ADMIN)
-    @error.error_handler
+    @helpers.error_handler
     async def sign(message: Message):
         mode = auth.SignMode.mode(message.get_args())
         auth.SignMode.set(mode)
@@ -24,7 +24,7 @@ def init(dispatcher):
 
     @dispatcher.message_handler(commands=["role"])
     @auth.require(auth.ADMIN)
-    @error.error_handler
+    @helpers.error_handler
     async def role(message: Message):
         user_id, role_name = message.get_args().split()
         session = db.Session()
@@ -42,7 +42,7 @@ def init(dispatcher):
 
     @dispatcher.message_handler(commands=["delete"])
     @auth.require(auth.ADMIN)
-    @error.error_handler
+    @helpers.error_handler
     async def delete(message: Message):
         user_id = message.get_args()
         session = db.Session()
@@ -60,7 +60,7 @@ def init(dispatcher):
 
     @dispatcher.message_handler(commands=["receipt"])
     @auth.require(auth.ADMIN)
-    @error.error_handler
+    @helpers.error_handler
     async def receipt(message: Message):
         receipt_id = message.get_args()
         receipt_data = await checkbox_api.get_receipt_data(receipt_id)

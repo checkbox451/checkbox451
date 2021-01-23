@@ -1,12 +1,12 @@
 from aiogram.types import Message
 
 from .. import auth, kbd, msg
-from . import bot, error, helpers
+from . import bot, helpers
 
 
 def init(dispatcher):
     @dispatcher.message_handler(content_types=["contact"])
-    @error.error_handler
+    @helpers.error_handler
     async def contact(message: Message):
         if message.contact is not None:
             user = auth.sign_in(message.contact)

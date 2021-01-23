@@ -1,4 +1,6 @@
+import functools
 from io import BytesIO
+from logging import getLogger
 
 from aiogram.types import (
     InlineKeyboardButton,
@@ -8,6 +10,8 @@ from aiogram.types import (
 )
 
 from .. import db, kbd, msg
+
+log = getLogger(__name__)
 
 
 async def start(message: Message):
@@ -44,3 +48,23 @@ async def send_receipt(
         parse_mode=ParseMode.HTML,
         reply_markup=keyboard,
     )
+
+
+async def error(message, exception):
+    await message.answer(
+        f"<b>Помилка:</b> <code>{exception!s}</code>",
+        parse_mode=ParseMode.HTML,
+    )
+    await start(message)
+
+
+def error_handler(handler):
+    @functools.wraps(handler)
+    async def wrapper(message: Message):
+        try:
+            return await handler(message)
+        except Exception as e:
+            log.exception("handler error")
+            return await error(message, e)
+
+    return wrapper
