@@ -9,7 +9,7 @@ from aiogram.types import (
     ParseMode,
 )
 
-from checkbox451_bot import db, kbd, msg
+from checkbox451_bot import auth, db, kbd, msg
 from checkbox451_bot.handlers import bot
 
 log = getLogger(__name__)
@@ -51,12 +51,12 @@ async def send_receipt(
     )
 
 
-async def error(message, exception):
-    await message.answer(
-        f"<b>Помилка:</b> <code>{exception!s}</code>",
+async def error(user_id, exception):
+    await bot.send_message(
+        user_id,
+        f"<b>Помилка:</b> <code>{exception}</code>",
         parse_mode=ParseMode.HTML,
     )
-    await start(message)
 
 
 def error_handler(handler):
@@ -66,6 +66,8 @@ def error_handler(handler):
             return await handler(message)
         except Exception as e:
             log.exception("handler error")
-            return await error(message, e)
+            await error(message.chat.id, str(e))
+            await broadcast(message.chat.id, auth.ADMIN, error, str(e))
+            await start(message)
 
     return wrapper
