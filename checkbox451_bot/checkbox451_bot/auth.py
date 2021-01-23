@@ -7,7 +7,7 @@ from typing import Union
 from aiogram.types import CallbackQuery, Contact, Message
 from sqlalchemy_utils import PhoneNumber
 
-from . import db, kbd, msg
+from checkbox451_bot import db, kbd, msg
 
 log = getLogger(__name__)
 

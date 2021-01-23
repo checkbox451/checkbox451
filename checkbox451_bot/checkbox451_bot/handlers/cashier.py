@@ -3,8 +3,8 @@ from logging import getLogger
 
 from aiogram.types import CallbackQuery, Message
 
-from .. import auth, checkbox_api, goods, kbd, msg
-from . import bot, helpers
+from checkbox451_bot import auth, checkbox_api, goods, kbd, msg
+from checkbox451_bot.handlers import bot, helpers
 
 log = getLogger(__name__)
 

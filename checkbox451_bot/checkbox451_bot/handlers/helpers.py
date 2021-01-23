@@ -9,7 +9,8 @@ from aiogram.types import (
     ParseMode,
 )
 
-from .. import db, kbd, msg
+from checkbox451_bot import db, kbd, msg
+from checkbox451_bot.handlers import bot
 
 log = getLogger(__name__)
 
@@ -32,8 +33,6 @@ async def send_receipt(
     receipt_url,
     receipt_text,
 ):
-    from . import bot
-
     keyboard = InlineKeyboardMarkup().add(
         InlineKeyboardButton(
             msg.PRINT,

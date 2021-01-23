@@ -4,7 +4,7 @@ from aiogram.types import (
     ReplyKeyboardRemove,
 )
 
-from . import msg
+from checkbox451_bot import msg
 
 remove = ReplyKeyboardRemove()
 
@@ -21,7 +21,7 @@ goods = None
 
 def init():
     global goods
-    from .goods import items
+    from checkbox451_bot.goods import items
 
     goods = ReplyKeyboardMarkup(
         resize_keyboard=True,

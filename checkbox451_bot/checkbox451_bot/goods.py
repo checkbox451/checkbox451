@@ -1,6 +1,6 @@
 from logging import getLogger
 
-from . import checkbox_api
+from checkbox451_bot import checkbox_api
 
 log = getLogger(__name__)
 

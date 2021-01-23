@@ -15,7 +15,7 @@ def start_polling():
     dispatcher = Dispatcher(bot)
     dispatcher.middleware.setup(LoggingMiddleware())
 
-    from . import admin, auth, cashier
+    from checkbox451_bot.handlers import admin, auth, cashier
 
     admin.init(dispatcher)
     auth.init(dispatcher)

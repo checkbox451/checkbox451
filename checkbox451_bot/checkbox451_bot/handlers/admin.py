@@ -1,7 +1,7 @@
 from aiogram.types import Message
 
-from .. import auth, checkbox_api, db, kbd, msg
-from . import bot, helpers
+from checkbox451_bot import auth, checkbox_api, db, kbd, msg
+from checkbox451_bot.handlers import bot, helpers
 
 
 def init(dispatcher):
