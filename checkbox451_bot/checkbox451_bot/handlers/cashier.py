@@ -24,17 +24,19 @@ def init(dispatcher):
 
         good = goods.items[message.text]
 
+        receipt_id = await checkbox_api.sell(good)
+
         try:
-            receipt_id, receipt_url = await checkbox_api.sell(good)
-        except (AssertionError, checkbox_api.CheckboxAPIException) as e:
-            log.exception("failed to create a receipt")
-            return await error.error(message, e)
-
-        await message.answer("Чек успішно створено", reply_markup=kbd.remove)
-
-        receipt_qr, receipt_text = await checkbox_api.get_receipt_extra(
-            receipt_id
-        )
+            receipt_url = await checkbox_api.wait_receipt_sign(receipt_id)
+            receipt_qr, receipt_text = await checkbox_api.get_receipt_extra(
+                receipt_id
+            )
+        except Exception as e:
+            await message.answer(
+                "Чек успішно створено",
+                reply_markup=kbd.remove,
+            )
+            raise e
 
         await helpers.send_receipt(
             message.chat.id,
@@ -43,7 +45,9 @@ def init(dispatcher):
             receipt_url,
             receipt_text,
         )
+
         await start(message)
+
         await helpers.broadcast(
             message.chat.id,
             auth.SUPERVISOR,
