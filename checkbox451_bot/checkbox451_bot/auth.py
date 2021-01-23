@@ -49,6 +49,7 @@ class SignMode(Enum):
         mode = next((attr for attr in cls if attr.value == item), None)
         if mode is None:
             raise ValueError("invalid mode")
+        return mode
 
 
 SignMode.set(SignMode.OFF)
