@@ -19,13 +19,11 @@ _admins = []
 
 
 def init():
-    global _admins
-
-    _admins = [
+    _admins.extend(
         PhoneNumber(phone_number, region="UA")
         for phone_number in os.environ.get(ADMIN, "").split(",")
         if phone_number
-    ]
+    )
 
 
 @unique

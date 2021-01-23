@@ -5,6 +5,7 @@ from aiogram.types import (
 )
 
 from checkbox451_bot import msg
+from checkbox451_bot.goods import items
 
 remove = ReplyKeyboardRemove()
 
@@ -16,15 +17,12 @@ start = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add(
     msg.CREATE_RECEIPT,
 )
 
-goods = None
+goods = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    one_time_keyboard=True,
+    row_width=1,
+)
 
 
 def init():
-    global goods
-    from checkbox451_bot.goods import items
-
-    goods = ReplyKeyboardMarkup(
-        resize_keyboard=True,
-        one_time_keyboard=True,
-        row_width=1,
-    ).add(*items)
+    goods.add(*items)
