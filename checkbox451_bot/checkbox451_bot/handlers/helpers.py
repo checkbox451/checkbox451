@@ -21,9 +21,11 @@ async def start(message: Message):
 
 async def broadcast(user_id, role_name, send_message, *args, **kwargs):
     session = db.Session()
-    for user in session.query(db.Role).get(role_name).users:
-        if user.user_id != user_id:
-            await send_message(user.user_id, *args, **kwargs)
+    role = session.query(db.Role).get(role_name)
+    if role:
+        for user in role.users:
+            if user.user_id != user_id:
+                await send_message(user.user_id, *args, **kwargs)
 
 
 async def send_receipt(
