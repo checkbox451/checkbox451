@@ -5,7 +5,6 @@ from aiogram.types import (
 )
 
 from . import msg
-from .goods import goods as _goods
 
 remove = ReplyKeyboardRemove()
 
@@ -17,8 +16,15 @@ start = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add(
     msg.CREATE_RECEIPT,
 )
 
-goods = ReplyKeyboardMarkup(
-    resize_keyboard=True,
-    one_time_keyboard=True,
-    row_width=1,
-).add(*_goods)
+goods = None
+
+
+def init():
+    global goods
+    from .goods import items
+
+    goods = ReplyKeyboardMarkup(
+        resize_keyboard=True,
+        one_time_keyboard=True,
+        row_width=1,
+    ).add(*items)

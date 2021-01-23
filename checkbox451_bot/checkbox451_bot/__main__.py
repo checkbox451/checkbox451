@@ -1,10 +1,12 @@
 import logging
 
-from aiogram.utils import executor
-
 logging.basicConfig(level=logging.INFO)
 
 if __name__ == "__main__":
-    from .handlers import dp
+    from . import auth, goods, handlers, kbd
 
-    executor.start_polling(dp, skip_updates=True)
+    auth.init()
+    goods.init()
+    kbd.init()
+
+    handlers.start_polling()
