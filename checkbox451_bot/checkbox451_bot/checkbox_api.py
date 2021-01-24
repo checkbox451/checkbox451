@@ -16,6 +16,16 @@ api_url = "https://{}api.checkbox.in.ua/".format("dev-" if dev_mode else "")
 api_url = os.environ.get("API_URL", api_url)
 log.info(f"{api_url=}")
 
+print_width = os.environ.get("PRINT_WIDTH")
+receipt_params = (
+    {
+        "width": int(print_width),
+    }
+    if print_width and print_width.isnumeric()
+    else {}
+)
+log.info(f"{receipt_params=}")
+
 
 class CheckboxAPIError(Exception):
     pass
@@ -215,7 +225,7 @@ async def get_receipt_text(session, receipt_id):
     async with get_retry(
         session,
         f"/receipts/{receipt_id}/text",
-        width=32,
+        **receipt_params,
     ) as response:
         await raise_for_status(response)
         receipt_text = await response.text()
