@@ -1,8 +1,10 @@
 import functools
 from io import BytesIO
 from logging import getLogger
+from typing import Union
 
 from aiogram.types import (
+    CallbackQuery,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     Message,
@@ -61,14 +63,14 @@ async def error(user_id, exception):
 
 def error_handler(handler):
     @functools.wraps(handler)
-    async def wrapper(message: Message):
+    async def wrapper(message: Union[CallbackQuery, Message]):
         try:
             return await handler(message)
         except Exception as e:
             log.exception("handler error")
-            await error(message.chat.id, str(e))
-            await broadcast(message.chat.id, auth.ADMIN, error, str(e))
-            if auth.has_role(message.chat.id, auth.CASHIER):
-                await start(message.chat.id)
+            await error(message.from_user.id, str(e))
+            await broadcast(message.from_user.id, auth.ADMIN, error, str(e))
+            if auth.has_role(message.from_user.id, auth.CASHIER):
+                await start(message.from_user.id)
 
     return wrapper
