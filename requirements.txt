@@ -1,4 +1,6 @@
 aiogram~=2.11.2
+aiohttp~=3.7.3
+cachetools~=4.2.0
 phonenumbers~=8.12.16
 requests~=2.25.1
 SQLAlchemy~=1.3.22
