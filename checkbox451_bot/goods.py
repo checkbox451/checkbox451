@@ -15,7 +15,7 @@ def init():
                 "name": good["name"],
                 "price": good["price"],
             }
-            for good in checkbox_api.goods()
+            for good in checkbox_api.goods.goods()
         }
     )
 

@@ -2,7 +2,8 @@ from logging import getLogger
 
 from aiogram.types import CallbackQuery, Message
 
-from checkbox451_bot import auth, checkbox_api, goods, kbd
+from checkbox451_bot import auth, goods, kbd
+from checkbox451_bot.checkbox_api import receipt
 from checkbox451_bot.handlers import bot, helpers
 
 log = getLogger(__name__)
@@ -23,11 +24,11 @@ def init(dispatcher):
 
         good = goods.items[message.text]
 
-        receipt_id = await checkbox_api.sell(good)
+        receipt_id = await receipt.sell(good)
 
         try:
-            receipt_url = await checkbox_api.wait_receipt_sign(receipt_id)
-            receipt_qr, receipt_text = await checkbox_api.get_receipt_extra(
+            receipt_url = await receipt.wait_receipt_sign(receipt_id)
+            receipt_qr, receipt_text = await receipt.get_receipt_extra(
                 receipt_id
             )
         except Exception as e:

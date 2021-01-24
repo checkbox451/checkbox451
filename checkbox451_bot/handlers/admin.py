@@ -1,6 +1,7 @@
 from aiogram.types import Message
 
-from checkbox451_bot import auth, checkbox_api, db, kbd
+from checkbox451_bot import auth, db, kbd
+from checkbox451_bot.checkbox_api import receipt, shift
 from checkbox451_bot.handlers import bot, helpers
 
 
@@ -63,10 +64,10 @@ def init(dispatcher):
     @dispatcher.message_handler(commands=["receipt"])
     @auth.require(auth.ADMIN)
     @helpers.error_handler
-    async def receipt(message: Message):
+    async def receipt_(message: Message):
         args = message.get_args().split()
         if len(args) > 0:
-            if not (receipt_id := await checkbox_api.search_receipt(args[0])):
+            if not (receipt_id := await receipt.search_receipt(args[0])):
                 return
         else:
             return
@@ -89,7 +90,7 @@ def init(dispatcher):
         else:
             user_id = message.chat.id
 
-        receipt_data = await checkbox_api.get_receipt_data(receipt_id)
+        receipt_data = await receipt.get_receipt_data(receipt_id)
         receipt_qr, receipt_url, receipt_text = receipt_data
         await helpers.send_receipt(
             user_id,
@@ -102,15 +103,15 @@ def init(dispatcher):
     @dispatcher.message_handler(commands=["shift"])
     @auth.require(auth.ADMIN)
     @helpers.error_handler
-    async def shift(message: Message):
+    async def shift_(message: Message):
         if not (arg := message.get_args()):
-            shift_balance = await checkbox_api.shift_balance()
+            shift_balance = await shift.shift_balance()
             if shift_balance is None:
                 await message.answer("Зміна закрита")
             else:
                 await message.answer(f"Баланс: {shift_balance:.02f} грн")
         elif arg == "close":
-            shift_balance = await checkbox_api.shift_close()
+            shift_balance = await shift.shift_close()
             await message.answer(
                 f"Зміну закрито. Дохід {shift_balance:.02f} грн"
             )
