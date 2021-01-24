@@ -1,9 +1,8 @@
-import re
 from logging import getLogger
 
 from aiogram.types import CallbackQuery, Message
 
-from checkbox451_bot import auth, checkbox_api, goods, kbd, msg
+from checkbox451_bot import auth, checkbox_api, goods, kbd
 from checkbox451_bot.handlers import bot, helpers
 
 log = getLogger(__name__)
@@ -14,7 +13,7 @@ def init(dispatcher):
     @auth.require(auth.CASHIER)
     @helpers.error_handler
     async def start(message: Message):
-        await helpers.start(message)
+        await helpers.start(message.chat.id)
 
     @dispatcher.message_handler(lambda m: m.text in goods.items)
     @auth.require(auth.CASHIER)
@@ -66,10 +65,14 @@ def init(dispatcher):
     async def print_receipt(callback_query: CallbackQuery):
         _, receipt_id = callback_query.data.split(":")
         log.info("print: %s", receipt_id)
-        await callback_query.answer(msg.PRINTING)
+        await callback_query.answer("Друкую…")
 
-    @dispatcher.message_handler(regexp=re.escape(msg.CREATE_RECEIPT))
+    start_btn = (
+        btn if isinstance(btn := kbd.start.keyboard[0][0], str) else btn.text
+    )
+
+    @dispatcher.message_handler(lambda m: m.text == start_btn)
     @auth.require(auth.CASHIER)
     @helpers.error_handler
     async def create(message: Message):
-        await message.answer(msg.SELECT_GOOD, reply_markup=kbd.goods)
+        await message.answer("Оберіть позицію", reply_markup=kbd.goods)

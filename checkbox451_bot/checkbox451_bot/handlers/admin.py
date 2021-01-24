@@ -1,7 +1,8 @@
 from aiogram.types import Message
 
-from checkbox451_bot import auth, checkbox_api, db, kbd, msg
+from checkbox451_bot import auth, checkbox_api, db, kbd
 from checkbox451_bot.handlers import bot, helpers
+from checkbox451_bot.handlers.helpers import start
 
 
 def init(dispatcher):
@@ -32,11 +33,7 @@ def init(dispatcher):
             auth.add_role(user, role_name, session=session)
             await message.answer(str(user))
             if user.user_id != message.chat.id:
-                await bot.send_message(
-                    user.user_id,
-                    msg.START,
-                    reply_markup=kbd.start,
-                )
+                await start(user.user_id)
         else:
             raise ValueError(f"no user: {user_id}")
 
@@ -52,7 +49,7 @@ def init(dispatcher):
             await message.answer(f"deleted: {user_id}")
             await bot.send_message(
                 user.user_id,
-                msg.BYE,
+                "Бувай!",
                 reply_markup=kbd.remove,
             )
         else:

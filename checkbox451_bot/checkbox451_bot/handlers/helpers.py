@@ -9,14 +9,14 @@ from aiogram.types import (
     ParseMode,
 )
 
-from checkbox451_bot import auth, db, kbd, msg
+from checkbox451_bot import auth, db, kbd
 from checkbox451_bot.handlers import bot
 
 log = getLogger(__name__)
 
 
-async def start(message: Message):
-    await message.answer(msg.START, reply_markup=kbd.start)
+async def start(user_id):
+    await bot.send_message(user_id, "Вітаю!", reply_markup=kbd.start)
 
 
 async def broadcast(user_id, role_name, send_message, *args, **kwargs):
@@ -37,7 +37,7 @@ async def send_receipt(
 ):
     keyboard = InlineKeyboardMarkup().add(
         InlineKeyboardButton(
-            msg.PRINT,
+            "Друкувати",
             callback_data=f"print:{receipt_id}",
         )
     )
@@ -68,6 +68,6 @@ def error_handler(handler):
             log.exception("handler error")
             await error(message.chat.id, str(e))
             await broadcast(message.chat.id, auth.ADMIN, error, str(e))
-            await start(message)
+            await start(message.chat.id)
 
     return wrapper

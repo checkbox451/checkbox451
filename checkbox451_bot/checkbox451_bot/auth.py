@@ -7,7 +7,7 @@ from typing import Union
 from aiogram.types import CallbackQuery, Contact, Message
 from sqlalchemy_utils import PhoneNumber
 
-from checkbox451_bot import db, kbd, msg
+from checkbox451_bot import db, kbd
 
 log = getLogger(__name__)
 
@@ -59,17 +59,16 @@ def require(role_name):
     def decorator(handler):
         @functools.wraps(handler)
         async def wrapper(arg: Union[CallbackQuery, Message]):
-            if isinstance(arg, CallbackQuery):
-                message = arg.message
-            else:
-                message = arg
+            message = arg.message if isinstance(arg, CallbackQuery) else arg
             if has_role(message.chat.id, role_name):
                 return await handler(arg)
 
             if SignMode.enabled() or not get_role(ADMIN).users:
-                if arg is not message:
-                    await arg.answer(msg.AUTH_REQUIRED)
-                await message.answer(msg.AUTH_REQUIRED, reply_markup=kbd.auth)
+                keyboard = None if arg is message else kbd.auth
+                await message.answer(
+                    "Потрібна авторизація",
+                    reply_markup=keyboard,
+                )
 
         return wrapper
 

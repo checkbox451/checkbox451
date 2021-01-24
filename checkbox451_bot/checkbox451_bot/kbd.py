@@ -4,17 +4,16 @@ from aiogram.types import (
     ReplyKeyboardRemove,
 )
 
-from checkbox451_bot import msg
 from checkbox451_bot.goods import items
 
 remove = ReplyKeyboardRemove()
 
 auth = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add(
-    KeyboardButton(msg.AUTHENTICATE, request_contact=True),
+    KeyboardButton("Авторизуватися", request_contact=True),
 )
 
 start = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add(
-    msg.CREATE_RECEIPT,
+    "Створити чек",
 )
 
 goods = ReplyKeyboardMarkup(

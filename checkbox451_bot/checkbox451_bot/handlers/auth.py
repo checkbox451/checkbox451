@@ -1,6 +1,6 @@
 from aiogram.types import Message
 
-from checkbox451_bot import auth, kbd, msg
+from checkbox451_bot import auth, kbd
 from checkbox451_bot.handlers import bot, helpers
 
 
@@ -13,7 +13,10 @@ def init(dispatcher):
             if user and user.roles:
                 return
 
-            await message.answer(msg.ADMIN_APPROVE, reply_markup=kbd.remove)
+            await message.answer(
+                "Адміністратор має підтвердити",
+                reply_markup=kbd.remove,
+            )
             await helpers.broadcast(
                 message.chat.id,
                 auth.ADMIN,
