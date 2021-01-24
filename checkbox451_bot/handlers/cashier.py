@@ -2,7 +2,7 @@ from logging import getLogger
 
 from aiogram.types import CallbackQuery, Message
 
-from checkbox451_bot import auth, goods, kbd
+from checkbox451_bot import auth, goods, kbd, pos
 from checkbox451_bot.checkbox_api import receipt
 from checkbox451_bot.handlers import bot, helpers
 
@@ -63,7 +63,16 @@ def init(dispatcher):
     async def print_receipt(callback_query: CallbackQuery):
         _, receipt_id = callback_query.data.split(":")
         log.info("print: %s", receipt_id)
-        await callback_query.answer("Друкую…")
+        try:
+            await pos.print_receipt_async(callback_query.message.text)
+        except Exception as e:
+            await callback_query.answer(
+                f"Помилка друку: {e!s}",
+                show_alert=True,
+            )
+            raise e
+
+        return await callback_query.answer("Друкую…")
 
     start_btn = (
         btn if isinstance(btn := kbd.start.keyboard[0][0], str) else btn.text
