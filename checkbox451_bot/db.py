@@ -14,8 +14,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, scoped_session, sessionmaker
 from sqlalchemy_utils import PhoneNumberType
 
-DB_PATH = Path(os.environ.get("DB_DIR",
-                              "checkbox451_bot")) / "checkbox451_bot.db"
+DB_PATH = Path(os.environ.get("DB_DIR", ".")) / "checkbox451_bot.db"
 
 Base = declarative_base()
 
