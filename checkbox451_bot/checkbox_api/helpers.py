@@ -6,6 +6,8 @@ import cachetools.func
 import requests
 from aiohttp import ClientResponse, ClientTimeout
 
+import checkbox451_bot
+
 log = getLogger(__name__)
 dev_mode = bool(os.environ.get("DEV_MODE"))
 api_url = "https://{}api.checkbox.in.ua/".format("dev-" if dev_mode else "")
@@ -55,7 +57,7 @@ def _auth():
 def headers(lic=False):
     _headers = {
         "X-Client-Name": "checkbox451",
-        "X-Client-Version": "0.1",
+        "X-Client-Version": checkbox451_bot.__version__,
         "Authorization": _auth(),
     }
 

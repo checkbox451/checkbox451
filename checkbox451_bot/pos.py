@@ -5,13 +5,13 @@ from escpos.config import Config
 from escpos.escpos import Escpos
 
 config = os.environ.get("PRINTER_CONFIG")
-bottom = int(os.environ.get("PRINT_BOTTOM_MARGIN", 4))
-logo = os.environ.get("PRINT_LOGO")
+bottom = int(os.environ.get("PRINT_BOTTOM_MARGIN") or 4)
+logo = os.environ.get("PRINT_LOGO_PATH")
 logo_impl = os.environ.get("PRINT_LOGO_IMPL", "bitImageRaster")
 
 
 def print_receipt(text):
-    if config is None:
+    if not config:
         return
 
     c = Config()
