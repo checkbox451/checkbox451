@@ -97,11 +97,8 @@ def get_role(role_name: str, *, session: db.Session = None):
 
 
 def add_role(user: db.User, role_name: str, *, session: db.Session):
-    assert role_name in (
-        ADMIN,
-        CASHIER,
-        SUPERVISOR,
-    ), f"invalid role: {role_name}"
+    if role_name not in (ADMIN, CASHIER, SUPERVISOR):
+        raise ValueError(f"invalid role: {role_name}")
 
     role = get_role(role_name, session=session)
 

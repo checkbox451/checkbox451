@@ -220,7 +220,8 @@ async def get_receipt_extra(receipt_id):
 
 
 async def sell(good):
-    assert good["price"] > 0, "Невірна ціна"
+    if good["price"] <= 0:
+        raise ValueError("Невірна ціна")
 
     async with aiohttp.ClientSession() as session:
         if not await current_shift(session):
