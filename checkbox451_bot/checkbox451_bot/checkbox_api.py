@@ -11,8 +11,8 @@ from aiohttp import ClientResponse, ClientResponseError, ClientTimeout
 
 log = getLogger(__name__)
 
-debug = bool(os.environ.get("DEBUG"))
-api_url = "https://{}api.checkbox.in.ua/".format("dev-" if debug else "")
+dev_mode = bool(os.environ.get("DEV_MODE"))
+api_url = "https://{}api.checkbox.in.ua/".format("dev-" if dev_mode else "")
 api_url = os.environ.get("API_URL", api_url)
 log.info(f"{api_url=}")
 
