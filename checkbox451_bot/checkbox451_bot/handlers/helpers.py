@@ -68,6 +68,7 @@ def error_handler(handler):
             log.exception("handler error")
             await error(message.chat.id, str(e))
             await broadcast(message.chat.id, auth.ADMIN, error, str(e))
-            await start(message.chat.id)
+            if auth.has_role(message.chat.id, auth.CASHIER):
+                await start(message.chat.id)
 
     return wrapper

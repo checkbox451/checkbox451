@@ -239,3 +239,37 @@ async def get_receipt_data(receipt_id):
         receipt_text = await get_receipt_text(session, receipt_id)
 
     return receipt_qr, receipt_url, receipt_text
+
+
+async def shift_balance():
+    async with aiohttp.ClientSession() as session:
+        shift = await current_shift(session)
+
+    if shift:
+        return shift["balance"]["balance"] / 100
+
+
+async def shift_close():
+    async with aiohttp.ClientSession() as session:
+        async with post(session, "/shifts/close") as response:
+            await raise_for_status(response)
+            shift = await response.json()
+
+        shift_id = shift["id"]
+        balance = shift["balance"]["balance"] / 100
+
+        for _ in range(10):
+            async with get(session, "/cashier/shift") as response:
+                try:
+                    shift = await response.json()
+                except JSONDecodeError:
+                    pass
+                else:
+                    if shift is None:
+                        log.info("shift closed: %s", shift_id)
+                        return balance
+
+            await asyncio.sleep(1)
+
+    log.error("shift close error: %s", shift)
+    raise CheckboxShiftError("Не вдалось підписати закриття зміни")
