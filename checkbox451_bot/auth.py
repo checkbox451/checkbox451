@@ -21,7 +21,7 @@ _admins = []
 def init():
     _admins.extend(
         PhoneNumber(phone_number, region="UA")
-        for phone_number in os.environ.get(ADMIN, "").split(",")
+        for phone_number in os.environ[ADMIN].split(",")
         if phone_number
     )
 
@@ -34,11 +34,15 @@ class SignMode(Enum):
 
     @classmethod
     def enabled(cls):
-        return getattr(cls, "_mode") in (cls.ON, cls.ONE)
+        return cls.get() in (cls.ON, cls.ONE)
 
     @classmethod
     def one(cls):
-        return getattr(cls, "_mode") is SignMode.ONE
+        return cls.get() is SignMode.ONE
+
+    @classmethod
+    def get(cls):
+        return getattr(cls, "_mode", cls.OFF)
 
     @classmethod
     def set(cls, mode):
@@ -52,9 +56,6 @@ class SignMode(Enum):
         return mode
 
 
-SignMode.set(SignMode.OFF)
-
-
 def require(role_name):
     def decorator(handler):
         @functools.wraps(handler)
@@ -64,10 +65,9 @@ def require(role_name):
                 return await handler(arg)
 
             if SignMode.enabled() or not get_role(ADMIN).users:
-                keyboard = None if arg is message else kbd.auth
                 await message.answer(
                     "Потрібна авторизація",
-                    reply_markup=keyboard,
+                    reply_markup=kbd.auth,
                 )
 
         return wrapper

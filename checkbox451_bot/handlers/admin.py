@@ -18,8 +18,11 @@ def init(dispatcher):
     @auth.require(auth.ADMIN)
     @helpers.error_handler
     async def sign(message: Message):
-        mode = auth.SignMode.mode(message.get_args())
-        auth.SignMode.set(mode)
+        if arg := message.get_args():
+            mode = auth.SignMode.mode(arg)
+            auth.SignMode.set(mode)
+        else:
+            mode = auth.SignMode.get()
         await message.answer(f"{message.get_command()} {mode.value}")
 
     @dispatcher.message_handler(commands=["role"])
