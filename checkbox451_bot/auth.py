@@ -57,15 +57,17 @@ class SignMode(Enum):
 
 
 def require(role_name):
+    from checkbox451_bot.handlers import bot
+
     def decorator(handler):
         @functools.wraps(handler)
-        async def wrapper(arg: Union[CallbackQuery, Message]):
-            message = arg.message if isinstance(arg, CallbackQuery) else arg
-            if has_role(message.chat.id, role_name):
-                return await handler(arg)
+        async def wrapper(message: Union[CallbackQuery, Message]):
+            if has_role(message.from_user.id, role_name):
+                return await handler(message)
 
             if SignMode.enabled() or not get_role(ADMIN).users:
-                await message.answer(
+                await bot.send_message(
+                    message.from_user.id,
                     "Потрібна авторизація",
                     reply_markup=kbd.auth,
                 )
