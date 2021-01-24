@@ -207,7 +207,7 @@ async def wait_receipt_sign(receipt_id):
             await asyncio.sleep(1)
 
     log.error("receipt signing error: %s", receipt)
-    raise CheckboxReceiptError("Не вдалося підписати чек")
+    raise CheckboxReceiptError("Не вдалось підписати чек")
 
 
 async def get_receipt_qrcode(session, receipt_id):
@@ -271,14 +271,56 @@ async def shift_balance():
         return shift["balance"]["balance"] / 100
 
 
+async def service_out(session):
+    shift = await current_shift(session)
+
+    if not shift:
+        raise CheckboxShiftError("Зміна закрита")
+
+    balance = shift["balance"]["balance"]
+    payment = {
+        "type": "CASH",
+        "value": -balance,
+        "label": "Готівка",
+    }
+
+    async with post(session, "/receipts/service", payment=payment) as response:
+        try:
+            await raise_for_status(response)
+        except ClientResponseError:
+            raise CheckboxReceiptError("Не вдалось здійснити службову видачу")
+
+        receipt = await response.json()
+
+    receipt_id = receipt["id"]
+    log.info("service out: %s", receipt_id)
+
+    for _ in range(10):
+        async with get(session, f"/receipts/{receipt_id}") as response:
+            try:
+                receipt = await response.json()
+            except JSONDecodeError:
+                pass
+            else:
+                if receipt["status"] == "DONE":
+                    return receipt_id
+
+        await asyncio.sleep(1)
+
+    log.error("service out signing error: %s", receipt)
+    raise CheckboxReceiptError("Не вдалось підписати службову видачу")
+
+
 async def shift_close():
     async with aiohttp.ClientSession() as session:
+        await service_out(session)
+
         async with post(session, "/shifts/close") as response:
             await raise_for_status(response)
             shift = await response.json()
 
         shift_id = shift["id"]
-        balance = shift["balance"]["balance"] / 100
+        balance = shift["balance"]["service_out"] / 100
 
         for _ in range(10):
             async with get(session, "/cashier/shift") as response:

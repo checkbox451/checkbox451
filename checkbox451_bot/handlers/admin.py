@@ -106,9 +106,11 @@ def init(dispatcher):
         if not (arg := message.get_args()):
             shift_balance = await checkbox_api.shift_balance()
             if shift_balance is None:
-                await message.answer("Зміна закрита", reply_markup=kbd.remove)
+                await message.answer("Зміна закрита")
             else:
-                await message.answer(f"Баланс: {shift_balance}")
+                await message.answer(f"Баланс: {shift_balance:.02f} грн")
         elif arg == "close":
             shift_balance = await checkbox_api.shift_close()
-            await message.answer(f"Зміну закрито. У касі {shift_balance} грн")
+            await message.answer(
+                f"Зміну закрито. Дохід {shift_balance:.02f} грн"
+            )
