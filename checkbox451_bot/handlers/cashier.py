@@ -62,16 +62,9 @@ def init(dispatcher):
     @helpers.error_handler
     async def print_receipt(callback_query: CallbackQuery):
         _, receipt_id = callback_query.data.split(":")
-        log.info("print: %s", receipt_id)
-        try:
-            await pos.print_receipt_async(callback_query.message.text)
-        except Exception as e:
-            await callback_query.answer(
-                f"Помилка друку: {e!s}",
-                show_alert=True,
-            )
-            raise e
 
+        log.info("print: %s", receipt_id)
+        await pos.print_receipt_async(callback_query.message.text)
         return await callback_query.answer("Друкую…")
 
     start_btn = (
