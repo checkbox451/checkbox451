@@ -31,7 +31,10 @@ def init(dispatcher):
         if user := session.query(db.User).get(user_id):
             auth.add_role(user, role_name, session=session)
             await message.answer(str(user))
-            if user.user_id != message.chat.id:
+            if (
+                auth.has_role(user.user_id, auth.CASHIER)
+                and user.user_id != message.chat.id
+            ):
                 await helpers.start(user.user_id)
         else:
             raise ValueError(f"no user: {user_id}")
