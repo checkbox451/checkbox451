@@ -61,11 +61,35 @@ def init(dispatcher):
     @auth.require(auth.ADMIN)
     @helpers.error_handler
     async def receipt(message: Message):
-        receipt_id = message.get_args()
+        args = message.get_args().split()
+        if len(args) > 0:
+            if not (receipt_id := await checkbox_api.search_receipt(args[0])):
+                return
+        else:
+            return
+        if len(args) == 2:
+            recipient = args[1]
+            if recipient.startswith("+"):
+                session = db.Session()
+                if (
+                    user := session.query(db.User)
+                    .filter(db.User.phone_number == recipient)
+                    .scalar()
+                ) :
+                    user_id = user.user_id
+                else:
+                    return
+            elif recipient.isnumeric():
+                user_id = int(recipient)
+            else:
+                return
+        else:
+            user_id = message.chat.id
+
         receipt_data = await checkbox_api.get_receipt_data(receipt_id)
         receipt_qr, receipt_url, receipt_text = receipt_data
         await helpers.send_receipt(
-            message.chat.id,
+            user_id,
             receipt_id,
             receipt_qr,
             receipt_url,

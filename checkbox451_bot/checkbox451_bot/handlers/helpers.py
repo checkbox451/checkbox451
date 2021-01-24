@@ -42,10 +42,10 @@ async def send_receipt(
         )
     )
 
-    await bot.send_photo(
+    await bot.send_photo(user_id, BytesIO(receipt_qr), caption=receipt_url)
+    await bot.send_message(
         user_id,
-        BytesIO(receipt_qr),
-        caption=f"{receipt_url}\n\n<pre>{receipt_text}</pre>",
+        f"<pre>{receipt_text}</pre>",
         parse_mode=ParseMode.HTML,
         reply_markup=keyboard,
     )

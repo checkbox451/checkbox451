@@ -59,8 +59,13 @@ def _headers(lic=False):
     return headers
 
 
+def get(session, path, **kwargs):
+    url = endpoint(path)
+    return session.get(url, headers=_headers(), params=kwargs)
+
+
 @asynccontextmanager
-async def get(session, path, **kwargs):
+async def get_retry(session, path, **kwargs):
     url = endpoint(path)
 
     err = None
@@ -196,7 +201,10 @@ async def wait_receipt_sign(receipt_id):
 
 
 async def get_receipt_qrcode(session, receipt_id):
-    async with get(session, f"/receipts/{receipt_id}/qrcode") as response:
+    async with get_retry(
+        session,
+        f"/receipts/{receipt_id}/qrcode",
+    ) as response:
         await raise_for_status(response)
         qrcode = await response.read()
 
@@ -204,9 +212,13 @@ async def get_receipt_qrcode(session, receipt_id):
 
 
 async def get_receipt_text(session, receipt_id):
-    async with get(session, f"/receipts/{receipt_id}/text", width=32) as resp:
-        await raise_for_status(resp)
-        receipt_text = await resp.text()
+    async with get_retry(
+        session,
+        f"/receipts/{receipt_id}/text",
+        width=32,
+    ) as response:
+        await raise_for_status(response)
+        receipt_text = await response.text()
 
     return receipt_text
 
@@ -273,3 +285,17 @@ async def shift_close():
 
     log.error("shift close error: %s", shift)
     raise CheckboxShiftError("Не вдалось підписати закриття зміни")
+
+
+async def search_receipt(fiscal_code):
+    async with aiohttp.ClientSession() as session:
+        async with get(
+            session,
+            "/receipts/search",
+            fiscal_code=fiscal_code,
+        ) as response:
+            await raise_for_status(response)
+            results = (await response.json())["results"]
+
+    if results:
+        return results[0]["id"]

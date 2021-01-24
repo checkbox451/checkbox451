@@ -4,7 +4,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.utils import executor
 
-bot = None
+bot: Bot
 
 
 def start_polling():
