@@ -12,7 +12,7 @@ def init(dispatcher):
         session = db.Session()
         users_repr = [str(u) for u in session.query(db.User)]
         text = "\n".join(users_repr)
-        await message.answer(text, reply_markup=kbd.remove)
+        await message.answer(text)
 
     @dispatcher.message_handler(commands=["sign"])
     @auth.require(auth.ADMIN)
@@ -81,13 +81,7 @@ def init(dispatcher):
             if shift_balance is None:
                 await message.answer("Зміна закрита", reply_markup=kbd.remove)
             else:
-                await message.answer(
-                    f"Баланс: {shift_balance}",
-                    reply_markup=kbd.remove,
-                )
+                await message.answer(f"Баланс: {shift_balance}")
         elif arg == "close":
             shift_balance = await checkbox_api.shift_close()
-            await message.answer(
-                f"Зміну закрито. У касі {shift_balance} грн",
-                reply_markup=kbd.remove,
-            )
+            await message.answer(f"Зміну закрито. У касі {shift_balance} грн")

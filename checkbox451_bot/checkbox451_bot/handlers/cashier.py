@@ -31,10 +31,7 @@ def init(dispatcher):
                 receipt_id
             )
         except Exception as e:
-            await message.answer(
-                "Чек успішно створено",
-                reply_markup=kbd.remove,
-            )
+            await message.answer("Чек успішно створено")
             raise e
 
         await helpers.send_receipt(
