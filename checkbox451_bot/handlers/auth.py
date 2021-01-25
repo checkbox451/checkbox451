@@ -11,7 +11,10 @@ def init(dispatcher):
         if message.contact is not None:
             if user := auth.sign_in(message.contact):
                 if user.roles:
-                    return await message.answer(f"Ролі: {user.roles}")
+                    return await message.answer(
+                        f"Ролі: {user.roles}",
+                        reply_markup=kbd.remove,
+                    )
 
                 await message.answer(
                     "Адміністратор має підтвердити",
