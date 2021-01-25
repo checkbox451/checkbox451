@@ -64,7 +64,7 @@ def init(dispatcher):
         _, receipt_id = callback_query.data.split(":")
 
         log.info("print: %s", receipt_id)
-        await pos.print_receipt_async(callback_query.message.text)
+        await pos.print_receipt(callback_query.message.text)
         return await callback_query.answer("Друкую…")
 
     start_btn = (
