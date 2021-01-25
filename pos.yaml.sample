@@ -1,0 +1,6 @@
+# PS-H58-WiFi
+printer:
+  type: Network
+  host: 192.168.0.200
+  timeout: 1
+  profile: POS-5890
