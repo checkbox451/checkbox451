@@ -72,8 +72,8 @@ def error_handler(handler):
                 await message.answer(f"Помилка: {e!s}", show_alert=True)
             else:
                 await error(message.from_user.id, str(e))
+                if auth.has_role(message.from_user.id, auth.CASHIER):
+                    await start(message.from_user.id)
             await broadcast(message.from_user.id, auth.ADMIN, error, str(e))
-            if auth.has_role(message.from_user.id, auth.CASHIER):
-                await start(message.from_user.id)
 
     return wrapper
