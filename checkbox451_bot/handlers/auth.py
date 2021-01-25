@@ -9,17 +9,17 @@ def init(dispatcher):
     @helpers.error_handler
     async def contact(message: Message):
         if message.contact is not None:
-            user = auth.sign_in(message.contact)
-            if user and user.roles:
-                return
+            if user := auth.sign_in(message.contact):
+                if user.roles:
+                    return await message.answer(f"Ролі: {user.roles}")
 
-            await message.answer(
-                "Адміністратор має підтвердити",
-                reply_markup=kbd.remove,
-            )
-            await helpers.broadcast(
-                message.chat.id,
-                auth.ADMIN,
-                bot.send_message,
-                f"new user: {user}",
-            )
+                await message.answer(
+                    "Адміністратор має підтвердити",
+                    reply_markup=kbd.remove,
+                )
+                await helpers.broadcast(
+                    message.chat.id,
+                    auth.ADMIN,
+                    bot.send_message,
+                    f"new user: {user}",
+                )
