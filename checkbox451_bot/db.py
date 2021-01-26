@@ -1,4 +1,5 @@
 import os
+from logging import getLogger
 from pathlib import Path
 
 from aiogram.types import Contact
@@ -14,7 +15,10 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, scoped_session, sessionmaker
 from sqlalchemy_utils import PhoneNumberType
 
-DB_PATH = Path(os.environ.get("DB_DIR", ".")) / "checkbox451_bot.db"
+log = getLogger(__name__)
+
+db_path = Path(os.environ.get("DB_DIR", ".")) / "checkbox451_bot.db"
+log.info(f"{db_path=!s}")
 
 Base = declarative_base()
 
@@ -62,6 +66,6 @@ class Role(Base):
         return self.name
 
 
-engine = create_engine(f"sqlite:///{DB_PATH}")
+engine = create_engine(f"sqlite:///{db_path}")
 Base.metadata.create_all(engine)
 Session = scoped_session(sessionmaker(bind=engine))
