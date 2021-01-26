@@ -11,7 +11,7 @@ import checkbox451_bot
 log = getLogger(__name__)
 dev_mode = bool(os.environ.get("DEV_MODE"))
 api_url = "https://{}api.checkbox.in.ua/".format("dev-" if dev_mode else "")
-api_url = os.environ.get("API_URL", api_url)
+api_url = os.environ.get("API_URL") or api_url
 log.info(f"{ api_url=}")
 
 print_width = os.environ.get("PRINT_WIDTH")
