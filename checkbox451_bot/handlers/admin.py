@@ -1,8 +1,8 @@
 from aiogram.types import Message
 
-from checkbox451_bot import auth, db, kbd
+from checkbox451_bot import auth, bot, db, kbd
 from checkbox451_bot.checkbox_api import receipt, shift
-from checkbox451_bot.handlers import bot, helpers
+from checkbox451_bot.handlers import helpers
 
 
 def init(dispatcher):
@@ -53,7 +53,7 @@ def init(dispatcher):
             session.delete(user)
             session.commit()
             await message.answer(f"deleted: {user_id}")
-            await bot.send_message(
+            await bot.obj.send_message(
                 user.user_id,
                 "Бувай!",
                 reply_markup=kbd.remove,

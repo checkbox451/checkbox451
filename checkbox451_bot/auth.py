@@ -7,7 +7,7 @@ from typing import Union
 from aiogram.types import CallbackQuery, Contact, Message
 from sqlalchemy_utils import PhoneNumber
 
-from checkbox451_bot import db, kbd
+from checkbox451_bot import bot, db, kbd
 
 log = getLogger(__name__)
 
@@ -57,8 +57,6 @@ class SignMode(Enum):
 
 
 def require(role_name):
-    from checkbox451_bot.handlers import bot
-
     def decorator(handler):
         @functools.wraps(handler)
         async def wrapper(message: Union[CallbackQuery, Message]):
@@ -66,7 +64,7 @@ def require(role_name):
                 return await handler(message)
 
             if SignMode.enabled() or not get_role(ADMIN).users:
-                await bot.send_message(
+                await bot.obj.send_message(
                     message.from_user.id,
                     "Потрібна авторизація",
                     reply_markup=kbd.auth,

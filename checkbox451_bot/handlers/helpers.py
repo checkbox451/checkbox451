@@ -11,14 +11,13 @@ from aiogram.types import (
     ParseMode,
 )
 
-from checkbox451_bot import auth, db, kbd
-from checkbox451_bot.handlers import bot
+from checkbox451_bot import auth, bot, db, kbd
 
 log = getLogger(__name__)
 
 
 async def start(user_id):
-    await bot.send_message(user_id, "Вітаю!", reply_markup=kbd.start)
+    await bot.obj.send_message(user_id, "Вітаю!", reply_markup=kbd.start)
 
 
 async def broadcast(user_id, role_name, send_message, *args, **kwargs):
@@ -44,8 +43,8 @@ async def send_receipt(
         )
     )
 
-    await bot.send_photo(user_id, BytesIO(receipt_qr), caption=receipt_url)
-    await bot.send_message(
+    await bot.obj.send_photo(user_id, BytesIO(receipt_qr), caption=receipt_url)
+    await bot.obj.send_message(
         user_id,
         f"<pre>{receipt_text}</pre>",
         parse_mode=ParseMode.HTML,
@@ -54,7 +53,7 @@ async def send_receipt(
 
 
 async def error(user_id, exception):
-    await bot.send_message(
+    await bot.obj.send_message(
         user_id,
         f"<b>Помилка:</b> <code>{exception}</code>",
         parse_mode=ParseMode.HTML,
