@@ -1,6 +1,5 @@
 import asyncio
 import os
-import sys
 from datetime import date
 
 import pygsheets
@@ -15,7 +14,8 @@ worksheet_title = os.environ.get("GOOGLE_WORKSHEET_TITLE")
 
 async def main():
     if await checkbox_api.shift.shift_balance() is None:
-        sys.exit("shift is closed")
+        print("shift is closed")
+        return
 
     today = date.today()
     income = await checkbox_api.shift.shift_close()
