@@ -20,7 +20,7 @@ def init(dispatcher):
     @auth.require(auth.CASHIER)
     @helpers.error_handler
     async def sell(message: Message):
-        await bot.obj.send_chat_action(message.chat.id, "typing")
+        await bot.obj.send_chat_action(message.chat.id, "upload_document")
 
         good = goods.items[message.text]
 
