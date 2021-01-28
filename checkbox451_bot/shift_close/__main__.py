@@ -5,7 +5,7 @@ from datetime import date
 import pygsheets
 from pygsheets import Worksheet
 
-from checkbox451_bot import checkbox_api
+from checkbox451_bot import auth, bot, checkbox_api, handlers
 
 service_account_file = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
 spreadsheet_key = os.environ.get("GOOGLE_SPREADSHEET_KEY")
@@ -26,6 +26,17 @@ async def main():
         spreadsheet = client.open_by_key(spreadsheet_key)
         wks: Worksheet = spreadsheet.worksheet_by_title(worksheet_title)
         wks.append_table([[today.isoformat(), income]])
+
+    bot.init()
+
+    await handlers.helpers.broadcast(
+        None,
+        auth.SUPERVISOR,
+        bot.obj.send_message,
+        f"Дохід {income:.02f} грн",
+    )
+
+    await bot.obj.session.close()
 
 
 asyncio.run(main())
