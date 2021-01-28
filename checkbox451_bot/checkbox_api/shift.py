@@ -4,9 +4,11 @@ from json.decoder import JSONDecodeError
 import aiohttp
 from aiohttp import ClientResponseError
 
-from checkbox451_bot.checkbox_api.helpers import (
+from checkbox451_bot.checkbox_api.exceptions import (
     CheckboxReceiptError,
     CheckboxShiftError,
+)
+from checkbox451_bot.checkbox_api.helpers import (
     get,
     log,
     post,

@@ -25,18 +25,6 @@ receipt_params = (
 log.info(f"{ receipt_params=}")
 
 
-class CheckboxAPIError(Exception):
-    pass
-
-
-class CheckboxReceiptError(CheckboxAPIError):
-    pass
-
-
-class CheckboxShiftError(CheckboxAPIError):
-    pass
-
-
 def endpoint(path: str):
     return os.path.join(api_url, "api/v1", path.lstrip("/"))
 
