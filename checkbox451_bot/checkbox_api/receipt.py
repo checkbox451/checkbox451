@@ -16,17 +16,19 @@ from checkbox451_bot.checkbox_api.helpers import (
 from checkbox451_bot.checkbox_api.shift import current_shift, open_shift
 
 
-async def create_receipt(session, good):
+async def create_receipt(session, goods):
+    payment = sum(good["price"] * good["quantity"] / 1000 for good in goods)
     receipt = {
         "goods": [
             {
                 "good": good,
-                "quantity": 1000,
-            },
+                "quantity": good.pop("quantity"),
+            }
+            for good in goods
         ],
         "payments": [
             {
-                "value": good["price"],
+                "value": payment,
             },
         ],
     }
@@ -95,15 +97,17 @@ async def get_receipt_extra(receipt_id):
     return receipt_qr, receipt_text
 
 
-async def sell(good):
-    if good["price"] <= 0:
+async def sell(goods):
+    if any(good["price"] <= 0 for good in goods):
         raise ValueError("Невірна ціна")
+    if any(good["quantity"] <= 0 for good in goods):
+        raise ValueError("Невірна кількість")
 
     async with aiohttp.ClientSession() as session:
         if not await current_shift(session):
             await open_shift(session)
 
-        receipt_id = await create_receipt(session, good)
+        receipt_id = await create_receipt(session, goods)
         return receipt_id
 
 

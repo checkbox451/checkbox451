@@ -1,4 +1,5 @@
 import functools
+import re
 from io import BytesIO
 from logging import getLogger
 from typing import Union
@@ -76,3 +77,27 @@ def error_handler(handler):
             await broadcast(message.from_user.id, auth.ADMIN, error, str(e))
 
     return wrapper
+
+
+goods_pattern = re.compile(
+    r"^\s*(.+?)\s+(\d+(?:[.,]\d{0,2})?)\s+грн"
+    r"(?:\s+(\d+(?:[.,]\d{0,3})?))?\s*$",
+    flags=re.MULTILINE,
+)
+
+
+def text_to_goods(text):
+    if len(text.splitlines()) != len(items := goods_pattern.findall(text)):
+        return
+
+    goods = [
+        {
+            "name": (name := item[0]),
+            "price": (price := int(float(item[1].replace(",", ".")) * 100)),
+            "quantity": int(float(item[2].replace(",", ".") or 1) * 1000),
+            "code": f"{name} {price / 100:.02f}",
+        }
+        for item in items
+    ]
+
+    return goods

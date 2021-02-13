@@ -2,7 +2,7 @@ from logging import getLogger
 
 from aiogram.types import CallbackQuery, Message
 
-from checkbox451_bot import auth, bot, goods, kbd, pos
+from checkbox451_bot import auth, bot, kbd, pos
 from checkbox451_bot.checkbox_api import receipt
 from checkbox451_bot.handlers import helpers
 
@@ -16,15 +16,17 @@ def init(dispatcher):
     async def start(message: Message):
         await helpers.start(message.chat.id)
 
-    @dispatcher.message_handler(lambda m: m.text in goods.items)
+    @dispatcher.message_handler(regexp=helpers.goods_pattern)
     @auth.require(auth.CASHIER)
     @helpers.error_handler
     async def sell(message: Message):
         await bot.obj.send_chat_action(message.chat.id, "upload_document")
 
-        good = goods.items[message.text]
+        if (goods := helpers.text_to_goods(message.text)) is None:
+            log.error("parse error: %s", message.text)
+            raise ValueError("Не вдалося розібрати повідомлення")
 
-        receipt_id = await receipt.sell(good)
+        receipt_id = await receipt.sell(goods)
 
         try:
             receipt_url = await receipt.wait_receipt_sign(receipt_id)
