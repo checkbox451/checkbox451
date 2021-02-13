@@ -95,13 +95,13 @@ async def raise_for_status(response: ClientResponse):
 
     try:
         result = await response.json()
-        message = result["message"]
-        detail = result["detail"]
-        message = f"{message}: {detail}"
     except Exception:
-        message = await response.text() or response.reason
+        message = response.reason
         log.exception(message)
     else:
+        message = result["message"]
+        detail = result.get("detail")
+        message = f"{message}" + f": {detail}" if detail else ""
         log.error(message)
 
     response.raise_for_status()
