@@ -47,7 +47,9 @@ async def create_receipt(session, good):
 async def wait_receipt_sign(receipt_id):
     async with aiohttp.ClientSession() as session:
         for _ in range(10):
-            async with get(session, f"/receipts/{receipt_id}") as response:
+            async with get_retry(
+                session, f"/receipts/{receipt_id}"
+            ) as response:
                 try:
                     receipt = await response.json()
                 except JSONDecodeError:
