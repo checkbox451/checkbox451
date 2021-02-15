@@ -11,7 +11,7 @@ import checkbox451_bot
 log = getLogger(__name__)
 dev_mode = bool(os.environ.get("DEV_MODE"))
 api_url = "https://{}api.checkbox.in.ua/".format("dev-" if dev_mode else "")
-api_url = os.environ.get("API_URL") or api_url
+api_url = os.environ.get("CHECKBOX_API_URL") or api_url
 log.info(f"{ api_url=}")
 
 print_width = os.environ.get("PRINT_WIDTH")
@@ -31,8 +31,8 @@ def endpoint(path: str):
 
 @cachetools.func.ttl_cache(ttl=86400)
 def _auth():
-    login = os.environ["LOGIN"]
-    password = os.environ["PASSWORD"]
+    login = os.environ["CHECKBOX_LOGIN"]
+    password = os.environ["CHECKBOX_PASSWORD"]
 
     url = endpoint("/cashier/signin")
     r = requests.post(url, json=dict(login=login, password=password))
@@ -50,7 +50,7 @@ def headers(lic=False):
     }
 
     if lic:
-        _headers["X-License-Key"] = os.environ["LICENSE_KEY"]
+        _headers["X-License-Key"] = os.environ["CHECKBOX_LICENSE"]
 
     return _headers
 

@@ -8,5 +8,5 @@ obj: Bot
 def init():
     global obj
 
-    token = os.environ["TOKEN"]
+    token = os.environ["TELEGRAM_BOT_TOKEN"]
     obj = Bot(token)

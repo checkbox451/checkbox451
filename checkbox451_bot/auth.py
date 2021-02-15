@@ -21,7 +21,7 @@ _admins = []
 def init():
     _admins.extend(
         PhoneNumber(phone_number, region="UA")
-        for phone_number in os.environ[ADMIN].split(",")
+        for phone_number in os.environ["TELEGRAM_BOT_ADMIN"].split(",")
         if phone_number
     )
 
