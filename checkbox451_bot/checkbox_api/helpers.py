@@ -1,4 +1,5 @@
 import os
+import posixpath
 from contextlib import asynccontextmanager
 from logging import getLogger
 
@@ -12,7 +13,7 @@ log = getLogger(__name__)
 dev_mode = bool(os.environ.get("DEV_MODE"))
 api_url = "https://{}api.checkbox.in.ua/".format("dev-" if dev_mode else "")
 api_url = os.environ.get("CHECKBOX_API_URL") or api_url
-log.info(f"{ api_url=}")
+log.info(f"{api_url=}")
 
 print_width = os.environ.get("PRINT_WIDTH")
 receipt_params = (
@@ -22,11 +23,11 @@ receipt_params = (
     if print_width and print_width.isnumeric()
     else {}
 )
-log.info(f"{ receipt_params=}")
+log.info(f"{receipt_params=}")
 
 
 def endpoint(path: str):
-    return os.path.join(api_url, "api/v1", path.lstrip("/"))
+    return posixpath.join(api_url, "api/v1", path.lstrip("/"))
 
 
 @cachetools.func.ttl_cache(ttl=86400)
