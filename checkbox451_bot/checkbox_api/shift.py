@@ -10,6 +10,7 @@ from checkbox451_bot.checkbox_api.exceptions import (
 )
 from checkbox451_bot.checkbox_api.helpers import (
     get,
+    get_retry,
     log,
     post,
     raise_for_status,
@@ -58,6 +59,9 @@ async def service_out(session):
         raise CheckboxShiftError("Зміна закрита")
 
     balance = shift["balance"]["balance"]
+    if balance <= 0:
+        return
+
     payment = {
         "type": "CASH",
         "value": -balance,
@@ -76,7 +80,7 @@ async def service_out(session):
     log.info("service out: %s", receipt_id)
 
     for _ in range(10):
-        async with get(session, f"/receipts/{receipt_id}") as response:
+        async with get_retry(session, f"/receipts/{receipt_id}") as response:
             try:
                 receipt = await response.json()
             except JSONDecodeError:
@@ -110,7 +114,7 @@ async def shift_close():
         shift_id = shift["id"]
         balance = shift["balance"]["service_out"] / 100
 
-        for _ in range(10):
+        for _ in range(60):
             async with get(session, "/cashier/shift") as response:
                 try:
                     shift = await response.json()
