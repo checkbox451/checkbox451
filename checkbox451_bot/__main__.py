@@ -1,7 +1,11 @@
 import asyncio
 import logging
 
-logging.basicConfig(level=logging.INFO)
+fmt = (
+    "%(asctime)s | %(levelname)-8s | %(name)s:%(funcName)s:%(lineno)d - "
+    "%(message)s"
+)
+logging.basicConfig(format=fmt, level=logging.INFO)
 
 from checkbox451_bot import auth, goods, handlers, kbd, shift_close
 
