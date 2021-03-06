@@ -47,7 +47,7 @@ def sync(coro):
 
 async def shift_close(logger: Any = log):
     if await checkbox_api.shift.shift_balance() is None:
-        logger.info("shift is closed")
+        logger.info("shift is already closed")
         return
 
     async with bot_init():
@@ -83,11 +83,13 @@ async def shift_close(logger: Any = log):
 
 
 async def scheduler():
-    if shift_close_time:
-        schedule.every().day.at(shift_close_time).do(sync(shift_close))
-        while True:
-            schedule.run_pending()
-            await asyncio.sleep(1)
+    if not shift_close_time:
+        return
+
+    schedule.every().day.at(shift_close_time).do(sync(shift_close))
+    while True:
+        schedule.run_pending()
+        await asyncio.sleep(1)
 
 
 class Logger:
