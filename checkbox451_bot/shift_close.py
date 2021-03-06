@@ -1,15 +1,22 @@
 import asyncio
+import functools
+import logging
 import os
 from contextlib import asynccontextmanager
 from datetime import date
+from typing import Any
 
 import pygsheets
+import schedule
 
 from checkbox451_bot import auth, bot, checkbox_api, handlers
 
 service_account_file = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
 spreadsheet_key = os.environ.get("GOOGLE_SPREADSHEET_KEY")
 worksheet_title = os.environ.get("GOOGLE_WORKSHEET_TITLE")
+shift_close_time = os.environ.get("SHIFT_CLOSE_TIME")
+
+log = logging.getLogger(__name__)
 
 
 async def error(msg):
@@ -30,9 +37,17 @@ async def bot_init():
         await bot.obj.session.close()
 
 
-async def main():
+def sync(coro):
+    @functools.wraps(coro)
+    def wrapper(*args, **kwargs):
+        asyncio.create_task(coro(*args, **kwargs))
+
+    return wrapper
+
+
+async def shift_close(logger: Any = log):
     if await checkbox_api.shift.shift_balance() is None:
-        print("shift is closed")
+        logger.info("shift is closed")
         return
 
     async with bot_init():
@@ -40,11 +55,11 @@ async def main():
             income = await checkbox_api.shift.shift_close()
         except Exception as e:
             await error(str(e))
-            print(f"shift close failed: {e!s}")
+            logger.error(f"shift close failed: {e!s}")
             return
 
         today = date.today().isoformat()
-        print(f"{today}: shift closed: income {income:.02f}")
+        logger.info(f"{today}: shift closed: income {income:.02f}")
 
         if income and service_account_file:
             try:
@@ -56,7 +71,7 @@ async def main():
                 wks.append_table([[today, income]])
             except Exception as e:
                 await error(str(e))
-                print(f"shift reporting failed: {e!s}")
+                logger.error(f"shift reporting failed: {e!s}")
                 return
 
         await handlers.helpers.broadcast(
@@ -67,5 +82,18 @@ async def main():
         )
 
 
+async def scheduler():
+    if shift_close_time:
+        schedule.every().day.at(shift_close_time).do(sync(shift_close))
+        while True:
+            schedule.run_pending()
+            await asyncio.sleep(1)
+
+
+class Logger:
+    error = print
+    info = print
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(shift_close(logger=Logger))
