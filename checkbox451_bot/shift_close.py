@@ -87,6 +87,8 @@ async def scheduler():
         return
 
     schedule.every().day.at(shift_close_time).do(sync(shift_close))
+    log.info(f"{shift_close_time=}")
+
     while True:
         schedule.run_pending()
         await asyncio.sleep(1)
