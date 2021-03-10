@@ -2,7 +2,6 @@ import asyncio
 import functools
 import logging
 import os
-from contextlib import asynccontextmanager
 from datetime import date
 from typing import Any
 
@@ -24,14 +23,6 @@ async def error(msg):
         helpers.error,
         msg,
     )
-
-
-@asynccontextmanager
-async def bot_session_close():
-    try:
-        yield
-    finally:
-        await bot.obj.session.close()
 
 
 def sync(coro):
@@ -91,7 +82,7 @@ class Logger:
 
 
 async def main():
-    async with bot_session_close():
+    async with bot.session_close():
         await shift_close(logger=Logger)
 
 

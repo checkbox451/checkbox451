@@ -7,11 +7,14 @@ fmt = (
 )
 logging.basicConfig(format=fmt, level=logging.INFO)
 
-from checkbox451_bot import auth, goods, handlers, kbd, shift_close
+from checkbox451_bot import auth, goods, handlers, kbd, pb2gsheet, shift_close
 
 auth.init()
 goods.init()
 kbd.init()
 
-asyncio.get_event_loop().create_task(shift_close.scheduler())
+loop = asyncio.get_event_loop()
+loop.create_task(pb2gsheet.run())
+loop.create_task(shift_close.scheduler())
+
 handlers.start_polling()
