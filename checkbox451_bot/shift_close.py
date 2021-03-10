@@ -6,13 +6,11 @@ from contextlib import asynccontextmanager
 from datetime import date
 from typing import Any
 
-import pygsheets
 import schedule
 
-from checkbox451_bot import auth, bot, checkbox_api, handlers
+from checkbox451_bot import auth, bot, checkbox_api, gsheet
+from checkbox451_bot.handlers import helpers
 
-service_account_file = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
-spreadsheet_key = os.environ.get("GOOGLE_SPREADSHEET_KEY")
 worksheet_title = os.environ.get("GOOGLE_WORKSHEET_TITLE")
 shift_close_time = os.environ.get("SHIFT_CLOSE_TIME")
 
@@ -20,17 +18,16 @@ log = logging.getLogger(__name__)
 
 
 async def error(msg):
-    await handlers.helpers.broadcast(
+    await helpers.broadcast(
         None,
         auth.ADMIN,
-        handlers.helpers.error,
+        helpers.error,
         msg,
     )
 
 
 @asynccontextmanager
-async def bot_init():
-    bot.init()
+async def bot_session_close():
     try:
         yield
     finally:
@@ -50,36 +47,30 @@ async def shift_close(logger: Any = log):
         logger.info("shift is already closed")
         return
 
-    async with bot_init():
+    try:
+        income = await checkbox_api.shift.shift_close()
+    except Exception as e:
+        await error(str(e))
+        logger.error(f"shift close failed: {e!s}")
+        return
+
+    today = date.today().isoformat()
+    logger.info(f"{today}: shift closed: income {income:.02f}")
+
+    if income:
         try:
-            income = await checkbox_api.shift.shift_close()
+            await gsheet.append_row([today, income], worksheet_title)
         except Exception as e:
             await error(str(e))
-            logger.error(f"shift close failed: {e!s}")
+            logger.error(f"shift reporting failed: {e!s}")
             return
 
-        today = date.today().isoformat()
-        logger.info(f"{today}: shift closed: income {income:.02f}")
-
-        if income and service_account_file:
-            try:
-                client = pygsheets.authorize(
-                    service_account_file=service_account_file
-                )
-                spreadsheet = client.open_by_key(spreadsheet_key)
-                wks = spreadsheet.worksheet_by_title(worksheet_title)
-                wks.append_table([[today, income]])
-            except Exception as e:
-                await error(str(e))
-                logger.error(f"shift reporting failed: {e!s}")
-                return
-
-        await handlers.helpers.broadcast(
-            None,
-            auth.SUPERVISOR,
-            bot.obj.send_message,
-            f"Дохід {income:.02f} грн",
-        )
+    await helpers.broadcast(
+        None,
+        auth.SUPERVISOR,
+        bot.obj.send_message,
+        f"Дохід {income:.02f} грн",
+    )
 
 
 async def scheduler():
@@ -99,5 +90,10 @@ class Logger:
     info = print
 
 
+async def main():
+    async with bot_session_close():
+        await shift_close(logger=Logger)
+
+
 if __name__ == "__main__":
-    asyncio.run(shift_close(logger=Logger))
+    asyncio.run(main())
