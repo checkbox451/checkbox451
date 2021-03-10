@@ -23,7 +23,7 @@ accounts = [
 privat24_api_id = os.environ["PRIVAT24_API_ID"]
 privat24_api_token = os.environ["PRIVAT24_API_TOKEN"]
 privat24_polling_interval = int(
-    os.environ.get("PRIVAT24_POLLING_INTERVAL", 15)
+    os.environ.get("PRIVAT24_POLLING_INTERVAL") or 15
 )
 
 transactions_file = Path(os.environ.get("DB_DIR", ".")) / "transactions.json"
