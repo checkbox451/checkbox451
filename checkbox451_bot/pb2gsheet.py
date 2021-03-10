@@ -20,9 +20,11 @@ accounts = [
     acc for acc in os.environ.get("PRIVAT_ACCOUNTS", "").split(",") if acc
 ]
 
-privat_api_id = os.environ["PRIVAT_API_ID"]
-privat_api_token = os.environ["PRIVAT_API_TOKEN"]
-privat_polling_interval = int(os.environ.get("PRIVAT_POLLING_INTERVAL", 15))
+privat24_api_id = os.environ["PRIVAT24_API_ID"]
+privat24_api_token = os.environ["PRIVAT24_API_TOKEN"]
+privat24_polling_interval = int(
+    os.environ.get("PRIVAT24_POLLING_INTERVAL", 15)
+)
 
 transactions_file = Path(os.environ.get("DB_DIR", ".")) / "transactions.json"
 worksheet_title = os.environ.get("GOOGLE_WORKSHEET_TITLE_CASHLESS")
@@ -40,8 +42,8 @@ async def get_transactions():
             async with session.get(
                 URL,
                 headers={
-                    "id": privat_api_id,
-                    "token": privat_api_token,
+                    "id": privat24_api_id,
+                    "token": privat24_api_token,
                     "User-Agent": __product__,
                     "Content-Type": "application/json; charset=utf8",
                 },
@@ -160,10 +162,10 @@ async def process_transactions(prev, logger):
 
 
 async def run(logger: Any = log):
-    if not privat_api_id:
+    if not privat24_api_id:
         return
 
-    logger.info(f"{privat_polling_interval=}")
+    logger.info(f"{privat24_polling_interval=}")
 
     prev = await read_transactions(logger)
 
@@ -172,7 +174,7 @@ async def run(logger: Any = log):
             prev = await process_transactions(prev, logger)
         except Exception as err:
             logger.exception(err)
-        await asyncio.sleep(60 * privat_polling_interval)
+        await asyncio.sleep(60 * privat24_polling_interval)
 
 
 class Logger:
