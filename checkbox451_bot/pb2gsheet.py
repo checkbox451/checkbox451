@@ -17,7 +17,7 @@ URL = "https://acp.privatbank.ua/api/statements/transactions/interim"
 sender_pat = re.compile(r"^.+,\s*(\S+\s+\S+\s+\S+)\s*$")
 
 accounts = [
-    acc for acc in os.environ.get("PRIVAT_ACCOUNTS", "").split(",") if acc
+    acc for acc in os.environ.get("PRIVAT24_ACCOUNTS", "").split(",") if acc
 ]
 
 privat24_api_id = os.environ["PRIVAT24_API_ID"]
