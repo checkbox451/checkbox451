@@ -21,7 +21,7 @@ manager = gspread_asyncio.AsyncioGspreadClientManager(get_creds)
 
 
 async def append_row(row, worksheet_title):
-    if service_account_file is None:
+    if not service_account_file:
         return
 
     client = await manager.authorize()
