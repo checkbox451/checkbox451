@@ -18,7 +18,6 @@ from checkbox451_bot.checkbox_api.shift import current_shift, open_shift
 
 
 @aiohttp_session
-@require_sign
 async def create_receipt(goods, *, session):
     payment = sum(good["price"] * good["quantity"] / 1000 for good in goods)
     receipt = {
@@ -102,6 +101,7 @@ async def get_receipt_extra(receipt_id, *, session):
 
 
 @aiohttp_session
+@require_sign
 async def sell(goods, *, session):
     if any(good["price"] <= 0 for good in goods):
         raise ValueError("Невірна ціна")

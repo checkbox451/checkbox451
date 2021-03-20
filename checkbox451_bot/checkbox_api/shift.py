@@ -28,7 +28,6 @@ async def current_shift(*, session):
 
 
 @aiohttp_session
-@require_sign
 async def open_shift(*, session):
     async with post("/shifts", session=session, lic=True) as response:
         try:
