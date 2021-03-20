@@ -1,10 +1,10 @@
-aiogram~=2.11.2
+aiogram~=2.12
 aiohttp~=3.7.4.post0
 cachetools~=4.2.0
 escpos~=1.8
 google-auth-oauthlib~=0.4.3
 gspread-asyncio~=1.4.0
-phonenumbers~=8.12.19
+phonenumbers~=8.12.20
 pygsheets~=2.0.5
 python-dateutil~=2.8.1
 requests~=2.25.1
