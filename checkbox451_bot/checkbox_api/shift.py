@@ -1,7 +1,6 @@
 import asyncio
 from json.decoder import JSONDecodeError
 
-import aiohttp
 from aiohttp import ClientResponseError
 
 from checkbox451_bot.checkbox_api.exceptions import (
@@ -9,6 +8,7 @@ from checkbox451_bot.checkbox_api.exceptions import (
     CheckboxShiftError,
 )
 from checkbox451_bot.checkbox_api.helpers import (
+    aiohttp_session,
     get,
     get_retry,
     log,
@@ -17,16 +17,18 @@ from checkbox451_bot.checkbox_api.helpers import (
 )
 
 
-async def current_shift(session):
-    async with get(session, "/cashier/shift") as response:
+@aiohttp_session
+async def current_shift(*, session):
+    async with get("/cashier/shift", session=session) as response:
         await raise_for_status(response)
         result = await response.json()
 
     return result
 
 
-async def open_shift(session):
-    async with post(session, "/shifts", lic=True) as response:
+@aiohttp_session
+async def open_shift(*, session):
+    async with post("/shifts", session=session, lic=True) as response:
         try:
             await raise_for_status(response)
         except ClientResponseError:
@@ -36,7 +38,7 @@ async def open_shift(session):
     shift_id = shift["id"]
 
     for _ in range(10):
-        async with get(session, "/cashier/shift") as response:
+        async with get("/cashier/shift", session=session) as response:
             try:
                 shift = await response.json()
             except JSONDecodeError:
@@ -52,8 +54,9 @@ async def open_shift(session):
     raise CheckboxShiftError("Не вдалось підписати зміну")
 
 
-async def service_out(session):
-    shift = await current_shift(session)
+@aiohttp_session
+async def service_out(*, session):
+    shift = await current_shift(session=session)
 
     if not shift:
         raise CheckboxShiftError("Зміна закрита")
@@ -68,7 +71,11 @@ async def service_out(session):
         "label": "Готівка",
     }
 
-    async with post(session, "/receipts/service", payment=payment) as response:
+    async with post(
+        "/receipts/service",
+        session=session,
+        payment=payment,
+    ) as response:
         try:
             await raise_for_status(response)
         except ClientResponseError:
@@ -80,7 +87,10 @@ async def service_out(session):
     log.info("service out: %s", receipt_id)
 
     for _ in range(10):
-        async with get_retry(session, f"/receipts/{receipt_id}") as response:
+        async with get_retry(
+            f"/receipts/{receipt_id}",
+            session=session,
+        ) as response:
             try:
                 receipt = await response.json()
             except JSONDecodeError:
@@ -95,37 +105,37 @@ async def service_out(session):
     raise CheckboxReceiptError("Не вдалось підписати службову видачу")
 
 
-async def shift_balance():
-    async with aiohttp.ClientSession() as session:
-        shift = await current_shift(session)
+@aiohttp_session
+async def shift_balance(*, session):
+    shift = await current_shift(session=session)
 
     if shift:
         return shift["balance"]["balance"] / 100
 
 
-async def shift_close():
-    async with aiohttp.ClientSession() as session:
-        await service_out(session)
+@aiohttp_session
+async def shift_close(*, session):
+    await service_out(session=session)
 
-        async with post(session, "/shifts/close") as response:
-            await raise_for_status(response)
-            shift = await response.json()
+    async with post("/shifts/close", session=session) as response:
+        await raise_for_status(response)
+        shift = await response.json()
 
-        shift_id = shift["id"]
-        balance = shift["balance"]["service_out"] / 100
+    shift_id = shift["id"]
+    balance = shift["balance"]["service_out"] / 100
 
-        for _ in range(60):
-            async with get(session, "/cashier/shift") as response:
-                try:
-                    shift = await response.json()
-                except JSONDecodeError:
-                    pass
-                else:
-                    if shift is None:
-                        log.info("shift closed: %s", shift_id)
-                        return balance
+    for _ in range(60):
+        async with get("/cashier/shift", session=session) as response:
+            try:
+                shift = await response.json()
+            except JSONDecodeError:
+                pass
+            else:
+                if shift is None:
+                    log.info("shift closed: %s", shift_id)
+                    return balance
 
-            await asyncio.sleep(1)
+        await asyncio.sleep(1)
 
     log.error("shift close error: %s", shift)
     raise CheckboxShiftError("Не вдалось підписати закриття зміни")

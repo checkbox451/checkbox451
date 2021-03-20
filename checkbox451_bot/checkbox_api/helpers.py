@@ -3,6 +3,7 @@ import posixpath
 from contextlib import asynccontextmanager
 from logging import getLogger
 
+import aiohttp
 import cachetools.func
 import requests
 from aiohttp import ClientResponse, ClientTimeout
@@ -24,6 +25,18 @@ receipt_params = (
     else {}
 )
 log.info(f"{receipt_params=}")
+
+
+def aiohttp_session(func):
+    @wraps(func)
+    async def wrapper(*args, session=None, **kwargs):
+        if session:
+            return await func(*args, session=session, **kwargs)
+
+        async with aiohttp.ClientSession() as session:
+            return await func(*args, session=session, **kwargs)
+
+    return wrapper
 
 
 def endpoint(path: str):
@@ -56,13 +69,13 @@ def headers(lic=False):
     return _headers
 
 
-def get(session, path, **kwargs):
+def get(path, *, session, **kwargs):
     url = endpoint(path)
     return session.get(url, headers=headers(), params=kwargs)
 
 
 @asynccontextmanager
-async def get_retry(session, path, **kwargs):
+async def get_retry(path, *, session, **kwargs):
     url = endpoint(path)
 
     err = None
@@ -85,7 +98,7 @@ async def get_retry(session, path, **kwargs):
     raise err
 
 
-def post(session, path, lic=False, **kwargs):
+def post(path, *, session, lic=False, **kwargs):
     url = endpoint(path)
     return session.post(url, headers=headers(lic), json=kwargs)
 

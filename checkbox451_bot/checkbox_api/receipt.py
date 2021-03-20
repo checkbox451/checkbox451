@@ -1,11 +1,11 @@
 import asyncio
 from json.decoder import JSONDecodeError
 
-import aiohttp
 from aiohttp import ClientResponseError
 
 from checkbox451_bot.checkbox_api.exceptions import CheckboxReceiptError
 from checkbox451_bot.checkbox_api.helpers import (
+    aiohttp_session,
     get,
     get_retry,
     log,
@@ -16,7 +16,8 @@ from checkbox451_bot.checkbox_api.helpers import (
 from checkbox451_bot.checkbox_api.shift import current_shift, open_shift
 
 
-async def create_receipt(session, goods):
+@aiohttp_session
+async def create_receipt(goods, *, session):
     payment = sum(good["price"] * good["quantity"] / 1000 for good in goods)
     receipt = {
         "goods": [
@@ -33,7 +34,7 @@ async def create_receipt(session, goods):
         ],
     }
 
-    async with post(session, "/receipts/sell", **receipt) as response:
+    async with post("/receipts/sell", session=session, **receipt) as response:
         try:
             await raise_for_status(response)
         except ClientResponseError:
@@ -46,30 +47,31 @@ async def create_receipt(session, goods):
     return receipt_id
 
 
-async def wait_receipt_sign(receipt_id):
-    async with aiohttp.ClientSession() as session:
-        for _ in range(10):
-            async with get_retry(
-                session, f"/receipts/{receipt_id}"
-            ) as response:
-                try:
-                    receipt = await response.json()
-                except JSONDecodeError:
-                    pass
-                else:
-                    if receipt["status"] == "DONE":
-                        return receipt["tax_url"]
+@aiohttp_session
+async def wait_receipt_sign(receipt_id, *, session):
+    for _ in range(10):
+        async with get_retry(
+            f"/receipts/{receipt_id}",
+            session=session,
+        ) as response:
+            try:
+                receipt = await response.json()
+            except JSONDecodeError:
+                pass
+            else:
+                if receipt["status"] == "DONE":
+                    return receipt["tax_url"]
 
-            await asyncio.sleep(1)
+        await asyncio.sleep(1)
 
     log.error("receipt signing error: %s", receipt)
     raise CheckboxReceiptError("Не вдалось підписати чек")
 
 
-async def get_receipt_qrcode(session, receipt_id):
+async def get_receipt_qrcode(receipt_id, *, session):
     async with get_retry(
-        session,
         f"/receipts/{receipt_id}/qrcode",
+        session=session,
     ) as response:
         await raise_for_status(response)
         qrcode = await response.read()
@@ -77,10 +79,10 @@ async def get_receipt_qrcode(session, receipt_id):
     return qrcode
 
 
-async def get_receipt_text(session, receipt_id):
+async def get_receipt_text(receipt_id, *, session):
     async with get_retry(
-        session,
         f"/receipts/{receipt_id}/text",
+        session=session,
         **receipt_params,
     ) as response:
         await raise_for_status(response)
@@ -89,47 +91,47 @@ async def get_receipt_text(session, receipt_id):
     return receipt_text
 
 
-async def get_receipt_extra(receipt_id):
-    async with aiohttp.ClientSession() as session:
-        receipt_qr = await get_receipt_qrcode(session, receipt_id)
-        receipt_text = await get_receipt_text(session, receipt_id)
+@aiohttp_session
+async def get_receipt_extra(receipt_id, *, session):
+    receipt_qr = await get_receipt_qrcode(receipt_id, session=session)
+    receipt_text = await get_receipt_text(receipt_id, session=session)
 
     return receipt_qr, receipt_text
 
 
-async def sell(goods):
+@aiohttp_session
+async def sell(goods, *, session):
     if any(good["price"] <= 0 for good in goods):
         raise ValueError("Невірна ціна")
     if any(good["quantity"] <= 0 for good in goods):
         raise ValueError("Невірна кількість")
 
-    async with aiohttp.ClientSession() as session:
-        if not await current_shift(session):
-            await open_shift(session)
+    if not await current_shift(session=session):
+        await open_shift(session=session)
 
-        receipt_id = await create_receipt(session, goods)
-        return receipt_id
+    receipt_id = await create_receipt(goods, session=session)
+    return receipt_id
 
 
-async def get_receipt_data(receipt_id):
-    async with aiohttp.ClientSession() as session:
-        async with get(session, f"/receipts/{receipt_id}") as response:
-            receipt_url = (await response.json())["tax_url"]
-        receipt_qr = await get_receipt_qrcode(session, receipt_id)
-        receipt_text = await get_receipt_text(session, receipt_id)
+@aiohttp_session
+async def get_receipt_data(receipt_id, *, session):
+    async with get(f"/receipts/{receipt_id}", session=session) as response:
+        receipt_url = (await response.json())["tax_url"]
+    receipt_qr = await get_receipt_qrcode(receipt_id, session=session)
+    receipt_text = await get_receipt_text(receipt_id, session=session)
 
     return receipt_qr, receipt_url, receipt_text
 
 
-async def search_receipt(fiscal_code):
-    async with aiohttp.ClientSession() as session:
-        async with get(
-            session,
-            "/receipts/search",
-            fiscal_code=fiscal_code,
-        ) as response:
-            await raise_for_status(response)
-            results = (await response.json())["results"]
+@aiohttp_session
+async def search_receipt(fiscal_code, *, session):
+    async with get(
+        "/receipts/search",
+        session=session,
+        fiscal_code=fiscal_code,
+    ) as response:
+        await raise_for_status(response)
+        results = (await response.json())["results"]
 
     if results:
         return results[0]["id"]

@@ -4,6 +4,7 @@ from aiogram.types import CallbackQuery, Message
 
 from checkbox451_bot import auth, bot, kbd, pos
 from checkbox451_bot.checkbox_api import receipt
+from checkbox451_bot.checkbox_api.helpers import aiohttp_session
 from checkbox451_bot.handlers import helpers
 
 log = getLogger(__name__)
@@ -19,19 +20,24 @@ def init(dispatcher):
     @dispatcher.message_handler(regexp=helpers.goods_pattern)
     @auth.require(auth.CASHIER)
     @helpers.error_handler
-    async def sell(message: Message):
+    @aiohttp_session
+    async def sell(message: Message, *, session):
         await bot.obj.send_chat_action(message.chat.id, "upload_document")
 
         if (goods := helpers.text_to_goods(message.text)) is None:
             log.error("parse error: %s", message.text)
             raise ValueError("Не вдалося розібрати повідомлення")
 
-        receipt_id = await receipt.sell(goods)
+        receipt_id = await receipt.sell(goods, session=session)
 
         try:
-            receipt_url = await receipt.wait_receipt_sign(receipt_id)
+            receipt_url = await receipt.wait_receipt_sign(
+                receipt_id,
+                session=session,
+            )
             receipt_qr, receipt_text = await receipt.get_receipt_extra(
-                receipt_id
+                receipt_id,
+                session=session,
             )
         except Exception as e:
             await message.answer("Чек успішно створено")

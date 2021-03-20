@@ -2,6 +2,7 @@ from aiogram.types import Message
 
 from checkbox451_bot import auth, bot, db, kbd
 from checkbox451_bot.checkbox_api import receipt, shift
+from checkbox451_bot.checkbox_api.helpers import aiohttp_session
 from checkbox451_bot.handlers import helpers
 
 
@@ -64,10 +65,16 @@ def init(dispatcher):
     @dispatcher.message_handler(commands=["receipt"])
     @auth.require(auth.ADMIN)
     @helpers.error_handler
-    async def receipt_(message: Message):
+    @aiohttp_session
+    async def receipt_(message: Message, *, session):
         args = message.get_args().split()
         if len(args) > 0:
-            if not (receipt_id := await receipt.search_receipt(args[0])):
+            if not (
+                receipt_id := await receipt.search_receipt(
+                    args[0],
+                    session=session,
+                )
+            ):
                 return
         else:
             return
@@ -90,7 +97,10 @@ def init(dispatcher):
         else:
             user_id = message.chat.id
 
-        receipt_data = await receipt.get_receipt_data(receipt_id)
+        receipt_data = await receipt.get_receipt_data(
+            receipt_id,
+            session=session,
+        )
         receipt_qr, receipt_url, receipt_text = receipt_data
         await helpers.send_receipt(
             user_id,
@@ -103,15 +113,16 @@ def init(dispatcher):
     @dispatcher.message_handler(commands=["shift"])
     @auth.require(auth.ADMIN)
     @helpers.error_handler
-    async def shift_(message: Message):
+    @aiohttp_session
+    async def shift_(message: Message, *, session):
         if not (arg := message.get_args()):
-            shift_balance = await shift.shift_balance()
+            shift_balance = await shift.shift_balance(session=session)
             if shift_balance is None:
                 await message.answer("Зміна закрита")
             else:
                 await message.answer(f"Баланс: {shift_balance:.02f} грн")
         elif arg == "close":
-            shift_balance = await shift.shift_close()
+            shift_balance = await shift.shift_close(session=session)
             await message.answer(
                 f"Зміну закрито. Дохід {shift_balance:.02f} грн"
             )
