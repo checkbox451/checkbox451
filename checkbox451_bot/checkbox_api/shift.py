@@ -14,6 +14,7 @@ from checkbox451_bot.checkbox_api.helpers import (
     log,
     post,
     raise_for_status,
+    require_sign,
 )
 
 
@@ -27,6 +28,7 @@ async def current_shift(*, session):
 
 
 @aiohttp_session
+@require_sign
 async def open_shift(*, session):
     async with post("/shifts", session=session, lic=True) as response:
         try:
@@ -114,6 +116,7 @@ async def shift_balance(*, session):
 
 
 @aiohttp_session
+@require_sign
 async def shift_close(*, session):
     await service_out(session=session)
 

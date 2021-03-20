@@ -2,6 +2,10 @@ class CheckboxAPIError(Exception):
     pass
 
 
+class CheckboxSignError(CheckboxAPIError):
+    pass
+
+
 class CheckboxReceiptError(CheckboxAPIError):
     pass
 

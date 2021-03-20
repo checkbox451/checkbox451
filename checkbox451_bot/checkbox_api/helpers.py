@@ -1,6 +1,8 @@
 import os
 import posixpath
 from contextlib import asynccontextmanager
+from functools import wraps
+from json import JSONDecodeError
 from logging import getLogger
 
 import aiohttp
@@ -9,6 +11,7 @@ import requests
 from aiohttp import ClientResponse, ClientTimeout
 
 import checkbox451_bot
+from checkbox451_bot.checkbox_api.exceptions import CheckboxSignError
 
 log = getLogger(__name__)
 dev_mode = bool(os.environ.get("DEV_MODE"))
@@ -119,3 +122,28 @@ async def raise_for_status(response: ClientResponse):
         log.error(message)
 
     response.raise_for_status()
+
+
+async def check_sign(*, session):
+    async with get_retry(
+        "/cashier/check-signature",
+        session=session,
+    ) as response:
+        await raise_for_status(response)
+
+        try:
+            result = await response.json()
+        except JSONDecodeError:
+            return False
+
+    return result["online"]
+
+
+def require_sign(func):
+    @wraps(func)
+    async def wrapper(*args, session, **kwargs):
+        if await check_sign(session=session):
+            return await func(*args, session=session, **kwargs)
+        raise CheckboxSignError("Підпис недоступний")
+
+    return wrapper

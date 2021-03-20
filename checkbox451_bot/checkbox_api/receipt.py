@@ -12,11 +12,13 @@ from checkbox451_bot.checkbox_api.helpers import (
     post,
     raise_for_status,
     receipt_params,
+    require_sign,
 )
 from checkbox451_bot.checkbox_api.shift import current_shift, open_shift
 
 
 @aiohttp_session
+@require_sign
 async def create_receipt(goods, *, session):
     payment = sum(good["price"] * good["quantity"] / 1000 for good in goods)
     receipt = {
