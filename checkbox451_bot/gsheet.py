@@ -1,10 +1,13 @@
 import os
+from logging import getLogger
 
 import gspread_asyncio
 from google.oauth2.service_account import Credentials
 
 service_account_file = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
 spreadsheet_key = os.environ.get("GOOGLE_SPREADSHEET_KEY")
+
+log = getLogger(__name__)
 
 
 def get_creds():
@@ -17,11 +20,16 @@ def get_creds():
     return scoped
 
 
-manager = gspread_asyncio.AsyncioGspreadClientManager(get_creds)
-
-
 async def append_row(row, worksheet_title):
-    if not service_account_file:
+    if not manager:
+        return
+
+    if not spreadsheet_key:
+        log.warning("missing spreadsheet key; ignoring...")
+        return
+
+    if not worksheet_title:
+        log.warning("missing worksheet title; ignoring...")
         return
 
     client = await manager.authorize()
@@ -29,3 +37,14 @@ async def append_row(row, worksheet_title):
     wks = await spreadsheet.worksheet(worksheet_title)
 
     await wks.append_row(row, value_input_option="USER_ENTERED")
+
+
+def init():
+    if not service_account_file:
+        log.warning("missing service account file; ignoring...")
+        return
+
+    return gspread_asyncio.AsyncioGspreadClientManager(get_creds)
+
+
+manager = init()

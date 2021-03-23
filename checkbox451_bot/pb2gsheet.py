@@ -162,7 +162,8 @@ async def process_transactions(prev, logger):
 
 
 async def run(logger: Any = log):
-    if not privat24_api_id:
+    if not privat24_api_id or not privat24_api_token:
+        log.warning("missing privat24 api credentials; ignoring...")
         return
 
     logger.info(f"{privat24_polling_interval=}")

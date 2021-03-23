@@ -66,6 +66,7 @@ async def shift_close(logger: Any = log):
 
 async def scheduler():
     if not shift_close_time:
+        log.warning("missing shift close time; ignoring...")
         return
 
     schedule.every().day.at(shift_close_time).do(sync(shift_close))
