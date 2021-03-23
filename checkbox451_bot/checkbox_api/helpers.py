@@ -14,20 +14,8 @@ import checkbox451_bot
 from checkbox451_bot.checkbox_api.exceptions import CheckboxSignError
 
 log = getLogger(__name__)
-dev_mode = bool(os.environ.get("DEV_MODE"))
-api_url = "https://{}api.checkbox.in.ua/".format("dev-" if dev_mode else "")
-api_url = os.environ.get("CHECKBOX_API_URL") or api_url
-log.info(f"{api_url=}")
 
-print_width = os.environ.get("PRINT_WIDTH")
-receipt_params = (
-    {
-        "width": int(print_width),
-    }
-    if print_width and print_width.isnumeric()
-    else {}
-)
-log.info(f"{receipt_params=}")
+api_url: str
 
 
 def aiohttp_session(func):
@@ -147,3 +135,19 @@ def require_sign(func):
         raise CheckboxSignError("Підпис недоступний")
 
     return wrapper
+
+
+def init():
+    global api_url
+
+    dev_mode = bool(os.environ.get("DEV_MODE"))
+    api_url = "https://{}api.checkbox.in.ua/".format(
+        "dev-" if dev_mode else ""
+    )
+    api_url = os.environ.get("CHECKBOX_API_URL") or api_url
+    log.info(f"{api_url=}")
+
+    return api_url
+
+
+init()

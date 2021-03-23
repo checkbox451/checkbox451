@@ -17,9 +17,6 @@ from sqlalchemy_utils import PhoneNumberType
 
 log = getLogger(__name__)
 
-db_path = Path(os.environ.get("DB_DIR", ".")) / "checkbox451_bot.db"
-log.info(f"{db_path=!s}")
-
 Base = declarative_base()
 
 association_table = Table(
@@ -66,6 +63,13 @@ class Role(Base):
         return self.name
 
 
-engine = create_engine(f"sqlite:///{db_path}")
-Base.metadata.create_all(engine)
-Session = scoped_session(sessionmaker(bind=engine))
+def init():
+    db_path = Path(os.environ.get("DB_DIR", ".")) / "checkbox451_bot.db"
+    log.info(f"{db_path=!s}")
+
+    engine = create_engine(f"sqlite:///{db_path}")
+    Base.metadata.create_all(engine)
+    return scoped_session(sessionmaker(bind=engine))
+
+
+Session = init()

@@ -1,5 +1,7 @@
 import asyncio
+import os
 from json.decoder import JSONDecodeError
+from logging import getLogger
 
 from aiohttp import ClientResponseError
 
@@ -8,13 +10,15 @@ from checkbox451_bot.checkbox_api.helpers import (
     aiohttp_session,
     get,
     get_retry,
-    log,
     post,
     raise_for_status,
-    receipt_params,
     require_sign,
 )
 from checkbox451_bot.checkbox_api.shift import current_shift, open_shift
+
+log = getLogger(__name__)
+
+receipt_params = {}
 
 
 @aiohttp_session
@@ -137,3 +141,15 @@ async def search_receipt(fiscal_code, *, session):
 
     if results:
         return results[0]["id"]
+
+
+def init():
+    print_width = os.environ.get("PRINT_WIDTH")
+
+    if print_width and print_width.isnumeric():
+        receipt_params["width"] = int(print_width)
+
+    log.info(f"{receipt_params=}")
+
+
+init()
