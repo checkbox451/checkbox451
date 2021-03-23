@@ -13,6 +13,12 @@ logo_impl = os.environ.get("PRINT_LOGO_IMPL") or "bitImageRaster"
 log = getLogger(__name__)
 
 
+class PrinterConfig(Config):
+    def __repr__(self):
+        args = ", ".join(f"{k}={v!r}" for k, v in self._printer_config.items())
+        return f"{self._printer_name}({args})"
+
+
 async def _printer() -> Optional[Escpos]:
     if not config:
         return
@@ -53,8 +59,10 @@ def init():
         log.warning("missing printer config file; ignoring...")
         return
 
-    printer_config = Config()
+    printer_config = PrinterConfig()
     printer_config.load(pos_yaml)
+
+    log.info(f"{printer_config=}")
 
     return printer_config
 
