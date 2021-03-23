@@ -6,10 +6,9 @@ from typing import Optional
 from escpos.config import Config
 from escpos.escpos import Escpos
 
-config = os.environ.get("PRINTER_CONFIG")
 bottom = int(os.environ.get("PRINT_BOTTOM_MARGIN") or 4)
 logo = os.environ.get("PRINT_LOGO_PATH")
-logo_impl = os.environ.get("PRINT_LOGO_IMPL", "bitImageRaster")
+logo_impl = os.environ.get("PRINT_LOGO_IMPL") or "bitImageRaster"
 
 log = getLogger(__name__)
 
@@ -18,15 +17,12 @@ async def _printer() -> Optional[Escpos]:
     if not config:
         return
 
-    c = Config()
-    c.load(config)
-
     loop = asyncio.get_event_loop()
 
     err = None
     for attempt in range(5):
         try:
-            return await loop.run_in_executor(None, c.printer)
+            return await loop.run_in_executor(None, config.printer)
         except Exception as e:
             err = e
             log.warning("printer retry attempt: %s", attempt + 1)
@@ -48,3 +44,19 @@ async def print_receipt(text):
         return
 
     asyncio.create_task(_print_receipt(printer, text))
+
+
+def init():
+    pos_yaml = os.environ.get("PRINTER_CONFIG")
+
+    if not pos_yaml:
+        log.warning("missing printer config file; ignoring...")
+        return
+
+    printer_config = Config()
+    printer_config.load(pos_yaml)
+
+    return printer_config
+
+
+config = init()
