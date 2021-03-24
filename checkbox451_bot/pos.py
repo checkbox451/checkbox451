@@ -1,8 +1,11 @@
 import asyncio
+import functools
 import os
+from contextlib import redirect_stdout
 from logging import getLogger
 from typing import Optional
 
+from escpos import printer
 from escpos.config import Config
 from escpos.escpos import Escpos
 
@@ -17,6 +20,18 @@ class PrinterConfig(Config):
     def __repr__(self):
         args = ", ".join(f"{k}={v!r}" for k, v in self._printer_config.items())
         return f"{self._printer_name}({args})"
+
+
+def ignore_stderr(f):
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        with open(os.devnull, "w") as null, redirect_stdout(null):
+            return f(*args, **kwargs)
+
+    return wrapper
+
+
+printer.Escpos.__del__ = ignore_stderr(printer.Escpos.__del__)
 
 
 async def _printer() -> Optional[Escpos]:
