@@ -18,6 +18,15 @@ class PrinterConfig(Config):
         args = ", ".join(f"{k}={v!r}" for k, v in self._printer_config.items())
         return f"{self._printer_name}({args})"
 
+    def close_printer(self):
+        if self._printer:
+            try:
+                self._printer.close()
+            except Exception:
+                log.exception("printer close error")
+
+            self._printer = None
+
 
 async def _printer() -> Optional[Escpos]:
     if not config:
@@ -39,10 +48,13 @@ async def _printer() -> Optional[Escpos]:
 
 
 async def _print_receipt(printer, text):
-    if logo:
-        printer.image(logo, impl=logo_impl)
+    try:
+        if logo:
+            printer.image(logo, impl=logo_impl)
 
-    printer.text(text + "\n" * bottom)
+        printer.text(text + "\n" * bottom)
+    finally:
+        config.close_printer()
 
 
 async def print_receipt(text):
