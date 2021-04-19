@@ -3,9 +3,10 @@ from logging import getLogger
 from aiogram.types import CallbackQuery, Message
 
 from checkbox451_bot import auth, bot, kbd, pos
-from checkbox451_bot.checkbox_api import receipt
+from checkbox451_bot.checkbox_api import receipt, shift
 from checkbox451_bot.checkbox_api.helpers import aiohttp_session
 from checkbox451_bot.handlers import helpers
+from checkbox451_bot.shift_close import shift_close
 
 log = getLogger(__name__)
 
@@ -84,3 +85,24 @@ def init(dispatcher):
     @helpers.error_handler
     async def create(message: Message):
         await message.answer("Оберіть позицію", reply_markup=kbd.goods)
+
+    @dispatcher.message_handler(commands=["shift"])
+    @auth.require(auth.CASHIER)
+    @helpers.error_handler
+    @aiohttp_session
+    async def shift_(message: Message, *, session):
+        if not (arg := message.get_args()):
+            shift_balance = await shift.shift_balance(session=session)
+            if shift_balance is None:
+                await message.answer("Зміна закрита")
+            else:
+                await message.answer(f"Баланс: {shift_balance:.02f} грн")
+        elif arg == "close":
+            income = await shift_close(
+                chat_id=message.chat.id,
+                session=session,
+            )
+            if income is None:
+                await message.answer("Зміну вже закрито")
+            else:
+                await message.answer(f"Зміну закрито. Дохід {income:.02f} грн")
