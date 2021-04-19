@@ -81,7 +81,7 @@ async def get_retry(path, *, session, **kwargs):
                 yield response
         except Exception as e:
             err = e
-            log.warning("retry attempt: %s", attempt + 1)
+            log.warning("retry attempt: %s (%s)", attempt + 1, path)
             continue
         else:
             return
