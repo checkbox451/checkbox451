@@ -8,6 +8,7 @@ from typing import Any
 import schedule
 
 from checkbox451_bot import auth, bot, checkbox_api, gsheet
+from checkbox451_bot.checkbox_api.helpers import aiohttp_session
 from checkbox451_bot.handlers import helpers
 
 worksheet_title = os.environ.get("GOOGLE_WORKSHEET_TITLE")
@@ -33,13 +34,14 @@ def sync(coro):
     return wrapper
 
 
-async def shift_close(logger: Any = log):
-    if await checkbox_api.shift.shift_balance() is None:
+@aiohttp_session
+async def shift_close(*, logger: Any = log, chat_id=None, session):
+    if await checkbox_api.shift.shift_balance(session=session) is None:
         logger.info("shift is already closed")
         return
 
     try:
-        income = await checkbox_api.shift.shift_close()
+        income = await checkbox_api.shift.shift_close(session=session)
     except Exception as e:
         await error(str(e))
         logger.error(f"shift close failed: {e!s}")
@@ -57,11 +59,13 @@ async def shift_close(logger: Any = log):
             return
 
     await helpers.broadcast(
-        None,
+        chat_id,
         auth.SUPERVISOR,
         bot.obj.send_message,
         f"Дохід {income:.02f} грн",
     )
+
+    return income
 
 
 async def scheduler():

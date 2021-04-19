@@ -4,6 +4,7 @@ from checkbox451_bot import auth, bot, db, kbd
 from checkbox451_bot.checkbox_api import receipt, shift
 from checkbox451_bot.checkbox_api.helpers import aiohttp_session
 from checkbox451_bot.handlers import helpers
+from checkbox451_bot.shift_close import shift_close
 
 
 def init(dispatcher):
@@ -122,7 +123,11 @@ def init(dispatcher):
             else:
                 await message.answer(f"Баланс: {shift_balance:.02f} грн")
         elif arg == "close":
-            shift_balance = await shift.shift_close(session=session)
-            await message.answer(
-                f"Зміну закрито. Дохід {shift_balance:.02f} грн"
+            income = await shift_close(
+                chat_id=message.chat.id,
+                session=session,
             )
+            if income is None:
+                await message.answer("Зміну вже закрито")
+            else:
+                await message.answer(f"Зміну закрито. Дохід {income:.02f} грн")
