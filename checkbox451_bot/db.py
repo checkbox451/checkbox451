@@ -64,8 +64,8 @@ class Role(Base):
 
 
 def init():
-    db_path = Path(os.environ.get("DB_DIR", ".")) / "checkbox451_bot.db"
-    log.info(f"{db_path=!s}")
+    db_path = str(Path(os.environ.get("DB_DIR", ".")) / "checkbox451_bot.db")
+    log.info(f"{db_path=!r}")
 
     engine = create_engine(f"sqlite:///{db_path}")
     Base.metadata.create_all(engine)
