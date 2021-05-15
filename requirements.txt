@@ -5,6 +5,7 @@ escpos~=1.9
 google-auth-oauthlib~=0.4.4
 gspread-asyncio~=1.4.0
 phonenumbers~=8.12.23
+pydantic~=1.8.2
 pygsheets~=2.0.5
 python-dateutil~=2.8.1
 requests~=2.25.1

@@ -4,11 +4,13 @@ import logging
 import os
 import re
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
 from typing import Any
 
 import aiohttp
 import dateutil.parser
+from pydantic import BaseModel, root_validator, validator
 
 from checkbox451_bot import __product__, auth, gsheet
 from checkbox451_bot.handlers import bot, helpers
@@ -30,6 +32,57 @@ transactions_file = Path(os.environ.get("DB_DIR", ".")) / "transactions.json"
 worksheet_title = os.environ.get("GOOGLE_WORKSHEET_TITLE_CASHLESS")
 
 log = logging.getLogger(__name__)
+
+
+class TranType(str, Enum):
+    CREDIT = "C"
+    _ = "(ignored)"
+
+    @classmethod
+    def _missing_(cls, _):
+        return TranType._
+
+
+class Transaction(BaseModel):
+    _orig: dict = None
+    aut_my_acc: str
+    dat_od: str
+    date_time_dat_od_tim_p: datetime
+    sender: str = ""
+    sum_e: str
+    trantype: TranType
+
+    class Config:
+        underscore_attrs_are_private = True
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self._orig = data
+
+    @property
+    def orig(self):
+        return self._orig
+
+    @root_validator(pre=True)
+    def keys_lower(cls, values):
+        return {k.lower(): v for k, v in values.items()}
+
+    @root_validator(pre=True)
+    def validate_sender(cls, values):
+        if match := sender_pat.match(values["osnd"]):
+            values["sender"] = match.group(1).title()
+        return values
+
+    @validator("dat_od", pre=True)
+    def validate_dat_od(cls, value):
+        return str(dateutil.parser.parse(value, dayfirst=True).date())
+
+    @validator("date_time_dat_od_tim_p", pre=True)
+    def validate_date_time_dat_od_tim_p(cls, value):
+        return dateutil.parser.parse(value, dayfirst=True)
+
+    def __lt__(self, other: "Transaction"):
+        return self.date_time_dat_od_tim_p < other.date_time_dat_od_tim_p
 
 
 async def get_transactions():
@@ -82,35 +135,18 @@ async def read_transactions(logger):
         return json.load(r)
 
 
-def get_sender(osnd):
-    if match := sender_pat.match(osnd):
-        return match.group(1).title()
-    return ""
-
-
-async def store_transaction(transaction):
-    dat_od = str(
-        dateutil.parser.parse(
-            transaction["DAT_OD"],
-            dayfirst=True,
-        ).date()
-    )
-    sum_e = float(transaction["SUM_E"])
-    sender = get_sender(transaction["OSND"])
-
-    await gsheet.append_row([dat_od, sum_e, sender], worksheet_title)
+async def store_transaction(transaction: Transaction):
+    row = [transaction.dat_od, transaction.sum_e, transaction.sender]
+    await gsheet.append_row(row, worksheet_title)
 
 
 async def bot_nofify(transaction):
-    sum_e = transaction["SUM_E"]
-    sender = get_sender(transaction["OSND"])
-
     await helpers.broadcast(
         None,
         auth.SUPERVISOR,
         bot.obj.send_message,
-        f"Безготівкове зарахування: {sum_e} грн"
-        + (f"\nПлатник: {sender}" if sender else ""),
+        f"Безготівкове зарахування: {transaction.sum_e} грн"
+        + (f"\nПлатник: {transaction.sender}" if transaction.sender else ""),
     )
 
 
@@ -118,15 +154,7 @@ def new_transaction(prev, curr):
     prev_set = {frozenset(t.items()) for t in prev}
     curr_set = {frozenset(t.items()) for t in curr}
 
-    new = [dict(i) for i in curr_set - prev_set]
-    new.sort(
-        key=lambda x: dateutil.parser.parse(
-            x["DATE_TIME_DAT_OD_TIM_P"],
-            dayfirst=True,
-        )
-    )
-
-    return new
+    return sorted(Transaction.parse_obj(i) for i in curr_set - prev_set)
 
 
 async def process_transactions(prev, logger):
@@ -138,10 +166,10 @@ async def process_transactions(prev, logger):
 
     if transactions := new_transaction(prev, curr):
         for transaction in transactions:
-            if transaction["TRANTYPE"] == "C" and (
-                not accounts or transaction["AUT_MY_ACC"] in accounts
+            if transaction.trantype == TranType.CREDIT and (
+                not accounts or transaction.aut_my_acc in accounts
             ):
-                logger.info(transaction)
+                logger.info(transaction.orig)
 
                 try:
                     await store_transaction(transaction)
