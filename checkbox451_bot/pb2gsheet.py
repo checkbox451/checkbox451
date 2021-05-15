@@ -165,6 +165,8 @@ async def process_transactions(prev, logger):
         return prev
 
     if transactions := new_transaction(prev, curr):
+        temp = prev[:]
+
         for transaction in transactions:
             if transaction.trantype == TranType.CREDIT and (
                 not accounts or transaction.aut_my_acc in accounts
@@ -175,17 +177,21 @@ async def process_transactions(prev, logger):
                     await store_transaction(transaction)
                 except Exception as err:
                     logger.exception(err)
-                    return prev
+                    write_transactions(temp)
+                    return temp
 
-                write_transactions(curr)
+                temp.append(transaction.orig)
 
                 try:
                     await bot_nofify(transaction)
                 except Exception as err:
                     logger.exception(err)
+            else:
+                temp.append(transaction.orig)
     else:
         logger.debug("no new transactions")
 
+    write_transactions(curr)
     return curr
 
 
