@@ -3,7 +3,12 @@ from contextlib import asynccontextmanager
 
 from aiogram import Bot
 
-obj = Bot(os.environ["TELEGRAM_BOT_TOKEN"])
+obj: Bot
+
+
+def init():
+    global obj
+    obj = Bot(os.environ["TELEGRAM_BOT_TOKEN"])
 
 
 @asynccontextmanager

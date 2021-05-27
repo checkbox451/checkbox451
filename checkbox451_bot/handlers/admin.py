@@ -86,7 +86,7 @@ def init(dispatcher):
                     user := session.query(db.User)
                     .filter(db.User.phone_number == recipient)
                     .scalar()
-                ) :
+                ):
                     user_id = user.user_id
                 else:
                     return
