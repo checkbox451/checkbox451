@@ -1,7 +1,7 @@
 aiogram~=2.13
 aiohttp~=3.7.4.post0
 cachetools~=4.2.2
-escpos~=1.8
+escpos==1.8
 google-auth-oauthlib~=0.4.4
 gspread-asyncio~=1.4.0
 phonenumbers~=8.12.24
