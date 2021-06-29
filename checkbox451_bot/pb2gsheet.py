@@ -70,7 +70,7 @@ class Transaction(BaseModel):
     @root_validator(pre=True)
     def validate_sender(cls, values):
         if match := sender_pat.match(values["osnd"]):
-            values["sender"] = match.group(1).title()
+            values["sender"] = match.group(1)
         return values
 
     @validator("dat_od", pre=True)
