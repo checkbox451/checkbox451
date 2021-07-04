@@ -1,10 +1,9 @@
 from escpos.constants import CODEPAGE_CHANGE
-from escpos.printer import File
+from escpos.printer import Dummy
 
 
-def test_escpos(tmp_path):
-    dst_file = tmp_path / "output.bin"
-    printer = File(str(dst_file), profile="POS-5890")
+def test_escpos():
+    printer = Dummy(profile="POS-5890")
     printer.text("абвїґ")
 
     expected = (
@@ -15,4 +14,4 @@ def test_escpos(tmp_path):
         + bytes([73])  # CP1251
         + "ґ".encode("cp1251")
     )
-    assert dst_file.read_bytes() == expected
+    assert printer.output == expected
