@@ -36,23 +36,28 @@ def endpoint(path: str):
 
 @cachetools.func.ttl_cache(ttl=86400)
 def _auth():
-    login = os.environ["CHECKBOX_LOGIN"]
-    password = os.environ["CHECKBOX_PASSWORD"]
+    pin_code = os.environ["CHECKBOX_PIN"]
 
-    url = endpoint("/cashier/signin")
-    r = requests.post(url, json=dict(login=login, password=password))
+    url = endpoint("/cashier/signinPinCode")
+    r = requests.post(
+        url,
+        headers=headers(auth=False, lic=True),
+        json=dict(pin_code=pin_code),
+    )
     r.raise_for_status()
     data = r.json()
 
     return f"{data['token_type']} {data['access_token']}"
 
 
-def headers(lic=False):
+def headers(*, auth=True, lic=False):
     _headers = {
         "X-Client-Name": "checkbox451",
         "X-Client-Version": checkbox451_bot.__version__,
-        "Authorization": _auth(),
     }
+
+    if auth:
+        _headers["Authorization"] = _auth()
 
     if lic:
         _headers["X-License-Key"] = os.environ["CHECKBOX_LICENSE"]
@@ -91,7 +96,7 @@ async def get_retry(path, *, session, **kwargs):
 
 def post(path, *, session, lic=False, **kwargs):
     url = endpoint(path)
-    return session.post(url, headers=headers(lic), json=kwargs)
+    return session.post(url, headers=headers(lic=lic), json=kwargs)
 
 
 async def raise_for_status(response: ClientResponse):
