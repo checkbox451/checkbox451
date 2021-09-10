@@ -3,6 +3,7 @@ from json.decoder import JSONDecodeError
 
 from aiohttp import ClientResponseError
 
+from checkbox451_bot.checkbox_api.auth import sign_out
 from checkbox451_bot.checkbox_api.exceptions import (
     CheckboxReceiptError,
     CheckboxShiftError,
@@ -135,6 +136,7 @@ async def shift_close(*, session):
             else:
                 if shift is None:
                     log.info("shift closed: %s", shift_id)
+                    sign_out()
                     return balance
 
         await asyncio.sleep(1)

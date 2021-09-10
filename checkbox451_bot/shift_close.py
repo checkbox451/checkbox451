@@ -38,6 +38,7 @@ def sync(coro):
 async def shift_close(*, logger: Any = log, chat_id=None, session):
     if await checkbox_api.shift.shift_balance(session=session) is None:
         logger.info("shift is already closed")
+        checkbox_api.auth.sign_out()
         return
 
     try:

@@ -6,11 +6,10 @@ from json import JSONDecodeError
 from logging import getLogger
 
 import aiohttp
-import cachetools.func
-import requests
 from aiohttp import ClientResponse, ClientTimeout
 
 import checkbox451_bot
+from checkbox451_bot.checkbox_api.auth import sign_in
 from checkbox451_bot.checkbox_api.exceptions import CheckboxSignError
 
 log = getLogger(__name__)
@@ -34,22 +33,6 @@ def endpoint(path: str):
     return posixpath.join(api_url, "api/v1", path.lstrip("/"))
 
 
-@cachetools.func.ttl_cache(ttl=86400)
-def _auth():
-    pin_code = os.environ["CHECKBOX_PIN"]
-
-    url = endpoint("/cashier/signinPinCode")
-    r = requests.post(
-        url,
-        headers=headers(auth=False, lic=True),
-        json=dict(pin_code=pin_code),
-    )
-    r.raise_for_status()
-    data = r.json()
-
-    return f"{data['token_type']} {data['access_token']}"
-
-
 def headers(*, auth=True, lic=False):
     _headers = {
         "X-Client-Name": "checkbox451",
@@ -57,7 +40,7 @@ def headers(*, auth=True, lic=False):
     }
 
     if auth:
-        _headers["Authorization"] = _auth()
+        _headers["Authorization"] = sign_in()
 
     if lic:
         _headers["X-License-Key"] = os.environ["CHECKBOX_LICENSE"]
