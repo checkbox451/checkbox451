@@ -35,7 +35,7 @@ def endpoint(path: str):
 
 def headers(*, auth=True, lic=False):
     _headers = {
-        "X-Client-Name": "checkbox451",
+        "X-Client-Name": checkbox451_bot.__appname__,
         "X-Client-Version": checkbox451_bot.__version__,
     }
 
