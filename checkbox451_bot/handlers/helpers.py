@@ -1,3 +1,4 @@
+import asyncio
 import functools
 import re
 from io import BytesIO
@@ -11,6 +12,7 @@ from aiogram.types import (
     Message,
     ParseMode,
 )
+from aiogram.utils.exceptions import RetryAfter
 
 from checkbox451_bot import auth, bot, db, kbd
 
@@ -24,10 +26,19 @@ async def start(user_id):
 async def broadcast(user_id, role_name, send_message, *args, **kwargs):
     session = db.Session()
     role = session.query(db.Role).get(role_name)
-    if role:
-        for user in role.users:
-            if user.user_id != user_id:
-                await send_message(user.user_id, *args, **kwargs)
+
+    async def send(user):
+        if user.user_id != user_id:
+            for _ in range(10):
+                try:
+                    await send_message(user.user_id, *args, **kwargs)
+                except RetryAfter as err:
+                    log.exception(err)
+                    await asyncio.sleep(err.timeout)
+                else:
+                    break
+
+    await asyncio.gather(*[send(user) for user in role.users])
 
 
 async def send_receipt(
