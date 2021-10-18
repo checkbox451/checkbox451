@@ -30,30 +30,40 @@ async def current_shift(*, session):
 
 @aiohttp_session
 async def open_shift(*, session):
-    async with post("/shifts", session=session, lic=True) as response:
-        try:
-            await raise_for_status(response)
-        except ClientResponseError:
-            raise CheckboxShiftError("Не вдалось відкрити зміну")
-        shift = await response.json()
-
-    shift_id = shift["id"]
-
-    for _ in range(10):
-        async with get("/cashier/shift", session=session) as response:
+    path = "/shifts"
+    for attempt in range(3):
+        async with post(path, session=session, lic=True) as response:
             try:
-                shift = await response.json()
-            except JSONDecodeError:
-                pass
-            else:
-                if shift["status"] == "OPENED":
-                    log.info("shift: %s", shift_id)
-                    return shift_id
+                await raise_for_status(response)
+            except ClientResponseError:
+                raise CheckboxShiftError("Помилка відкриття зміни")
+            opened_shift = await response.json()
 
+        for _ in range(10):
+            async with get("/cashier/shift", session=session) as response:
+                try:
+                    shift = await response.json()
+                except JSONDecodeError:
+                    pass
+                else:
+                    if shift is None:
+                        log.warning("shift is missing: %s", opened_shift)
+                        break
+                    if shift["status"] == "OPENED":
+                        shift_id = shift["id"]
+                        log.info("shift: %s", shift_id)
+                        return shift_id
+
+            await asyncio.sleep(1)
+        else:
+            log.error("shift error: %s", shift)
+            raise CheckboxShiftError("Не вдалось підписати зміну")
+
+        log.warning("retry attempt: %s (%s)", attempt + 1, path)
         await asyncio.sleep(1)
 
-    log.error("shift error: %s", shift)
-    raise CheckboxShiftError("Не вдалось підписати зміну")
+    log.error("shift error: %s", opened_shift)
+    raise CheckboxShiftError("Не вдалось відкрити зміну")
 
 
 @aiohttp_session
