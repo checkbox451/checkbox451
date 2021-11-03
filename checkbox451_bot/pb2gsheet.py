@@ -3,7 +3,7 @@ import json
 import logging
 import os
 import re
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -15,7 +15,7 @@ from pydantic import BaseModel, root_validator, validator
 from checkbox451_bot import __product__, auth, gsheet
 from checkbox451_bot.handlers import bot, helpers
 
-URL = "https://acp.privatbank.ua/api/statements/transactions/interim"
+URL = "https://acp.privatbank.ua/api/statements/transactions"
 sender_pat = re.compile(r"^.+,\s*(\S+\s+\S+(?:\s+)?\S+)\s*$")
 
 accounts = [
@@ -90,6 +90,7 @@ async def get_transactions():
 
     exist_next_page = True
     next_page_id = ""
+    start_date = date.today() - timedelta(days=7)
     async with aiohttp.ClientSession() as session:
         while exist_next_page:
             async with session.get(
@@ -101,6 +102,7 @@ async def get_transactions():
                     "Content-Type": "application/json; charset=utf8",
                 },
                 params={
+                    "startDate": start_date.strftime("%d-%m-%Y"),
                     "followId": next_page_id,
                 },
             ) as response:
