@@ -16,7 +16,9 @@ from checkbox451_bot import __product__, auth, gsheet
 from checkbox451_bot.handlers import bot, helpers
 
 URL = "https://acp.privatbank.ua/api/statements/transactions"
-sender_pat = re.compile(r"^.+,\s*(\S+\s+\S+(?:\s+)?\S+)\s*$")
+sender_pat = re.compile(
+    r"^(?:.+(?:,\s*|Переказ\s+вiд\s+)(\S+\s+\S+(?:\s+\S+)?))\s*$"
+)
 
 accounts = [
     acc for acc in os.environ.get("PRIVAT24_ACCOUNTS", "").split(",") if acc
