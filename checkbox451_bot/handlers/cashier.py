@@ -106,7 +106,6 @@ def init(dispatcher):
                 await message.answer("Зміну вже закрито")
             else:
                 await message.answer(
-                    f"Зміну закрито" + f"\nДохід {income:.02f} грн"
-                    if income
-                    else ""
+                    "Зміну закрито"
+                    + (f"\nДохід {income:.02f} грн" if income else "")
                 )
