@@ -12,7 +12,8 @@ import aiohttp
 import dateutil.parser
 from pydantic import BaseModel, root_validator, validator
 
-from checkbox451_bot import __product__, auth, gsheet
+from checkbox451_bot import __product__, auth, checkbox_api, gsheet
+from checkbox451_bot.checkbox_api.helpers import aiohttp_session
 from checkbox451_bot.handlers import bot, helpers
 
 URL = "https://acp.privatbank.ua/api/statements/transactions"
@@ -154,6 +155,56 @@ async def bot_nofify(transaction):
     )
 
 
+def transaction_to_goods(transaction):
+    if name := os.environ.get("PRIVAT24_GOOD_NAME_DEFAULT"):
+        return [
+            {
+                "code": f"{name} {transaction.sum_e}",
+                "name": name,
+                "price": float(transaction.sum_e) * 100,
+                "quantity": 1000,
+            }
+        ]
+
+
+@aiohttp_session
+async def create_receipt(transaction, *, session):
+    if goods := transaction_to_goods(transaction):
+        receipt_id = await checkbox_api.receipt.sell(
+            goods, cashless=True, session=session
+        )
+    else:
+        return
+
+    try:
+        receipt_url = await checkbox_api.receipt.wait_receipt_sign(
+            receipt_id,
+            session=session,
+        )
+        (
+            receipt_qr,
+            receipt_text,
+        ) = await checkbox_api.receipt.get_receipt_extra(
+            receipt_id,
+            session=session,
+        )
+    except Exception as e:
+        await helpers.broadcast(
+            None, auth.SUPERVISOR, bot.obj.send_message, "Чек успішно створено"
+        )
+        raise e
+
+    await helpers.broadcast(
+        None,
+        auth.SUPERVISOR,
+        helpers.send_receipt,
+        receipt_id,
+        receipt_qr,
+        receipt_url,
+        receipt_text,
+    )
+
+
 def new_transaction(prev, curr):
     prev_set = {frozenset(t.items()) for t in prev}
     curr_set = {frozenset(t.items()) for t in curr}
@@ -188,6 +239,11 @@ async def process_transactions(prev, logger):
 
                 try:
                     await bot_nofify(transaction)
+                except Exception as err:
+                    logger.exception(err)
+
+                try:
+                    await create_receipt(transaction)
                 except Exception as err:
                     logger.exception(err)
             else:

@@ -105,4 +105,8 @@ def init(dispatcher):
             if income is None:
                 await message.answer("Зміну вже закрито")
             else:
-                await message.answer(f"Зміну закрито\nДохід {income:.02f} грн")
+                await message.answer(
+                    f"Зміну закрито" + f"\nДохід {income:.02f} грн"
+                    if income
+                    else ""
+                )

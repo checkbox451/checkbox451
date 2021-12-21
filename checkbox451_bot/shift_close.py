@@ -57,14 +57,13 @@ async def shift_close(*, logger: Any = log, chat_id=None, session):
         except Exception as e:
             await error(str(e))
             logger.error(f"shift reporting failed: {e!s}")
-            return
 
-    await helpers.broadcast(
-        chat_id,
-        auth.SUPERVISOR,
-        bot.obj.send_message,
-        f"Дохід {income:.02f} грн",
-    )
+        await helpers.broadcast(
+            chat_id,
+            auth.SUPERVISOR,
+            bot.obj.send_message,
+            f"Дохід {income:.02f} грн",
+        )
 
     return income
 

@@ -22,7 +22,7 @@ receipt_params = {}
 
 
 @aiohttp_session
-async def create_receipt(goods, *, session):
+async def create_receipt(goods, cashless=False, *, session):
     payment = sum(good["price"] * good["quantity"] / 1000 for good in goods)
     receipt = {
         "goods": [
@@ -34,6 +34,7 @@ async def create_receipt(goods, *, session):
         ],
         "payments": [
             {
+                "type": "CASHLESS" if cashless else "CASH",
                 "value": payment,
             },
         ],
@@ -106,7 +107,7 @@ async def get_receipt_extra(receipt_id, *, session):
 
 @aiohttp_session
 @require_sign
-async def sell(goods, *, session):
+async def sell(goods, cashless=False, *, session):
     if any(good["price"] <= 0 for good in goods):
         raise ValueError("Невірна ціна")
     if any(good["quantity"] <= 0 for good in goods):
@@ -115,7 +116,9 @@ async def sell(goods, *, session):
     if not await current_shift(session=session):
         await open_shift(session=session)
 
-    receipt_id = await create_receipt(goods, session=session)
+    receipt_id = await create_receipt(
+        goods, cashless=cashless, session=session
+    )
     return receipt_id
 
 
