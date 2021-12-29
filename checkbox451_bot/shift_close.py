@@ -62,7 +62,7 @@ async def shift_close(*, logger: Any = log, chat_id=None, session):
             chat_id,
             auth.SUPERVISOR,
             bot.obj.send_message,
-            f"Дохід {income:.02f} грн",
+            f"Готівкова виручка {income:.02f} грн",
         )
 
     return income
