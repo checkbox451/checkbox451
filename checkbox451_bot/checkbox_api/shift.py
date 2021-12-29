@@ -39,7 +39,7 @@ async def open_shift(*, session):
                 raise CheckboxShiftError("Помилка відкриття зміни")
             opened_shift = await response.json()
 
-        for _ in range(10):
+        for _ in range(60):
             async with get("/cashier/shift", session=session) as response:
                 try:
                     shift = await response.json()
