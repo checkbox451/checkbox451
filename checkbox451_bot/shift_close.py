@@ -36,7 +36,8 @@ def sync(coro):
 
 @aiohttp_session
 async def shift_close(*, logger: Any = log, chat_id=None, session):
-    if await checkbox_api.shift.shift_balance(session=session) is None:
+    shift = await checkbox_api.shift.current_shift(session=session)
+    if shift is None:
         logger.info("shift is already closed")
         checkbox_api.auth.sign_out()
         return
@@ -51,19 +52,20 @@ async def shift_close(*, logger: Any = log, chat_id=None, session):
     today = date.today().isoformat()
     logger.info(f"{today}: shift closed: income {income:.02f}")
 
-    if income:
+    if shift:
         try:
             await gsheet.append_row([today, income], worksheet_title)
         except Exception as e:
             await error(str(e))
             logger.error(f"shift reporting failed: {e!s}")
 
-        await helpers.broadcast(
+        answer = functools.partial(
+            helpers.broadcast,
             chat_id,
             auth.SUPERVISOR,
             bot.obj.send_message,
-            f"Готівкова виручка {income:.02f} грн",
         )
+        await helpers.send_report(answer, shift)
 
     return income
 

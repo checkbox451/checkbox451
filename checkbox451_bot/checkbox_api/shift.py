@@ -100,14 +100,6 @@ async def service_out(*, session):
 
 
 @aiohttp_session
-async def shift_balance(*, session):
-    shift = await current_shift(session=session)
-
-    if shift:
-        return shift["balance"]["balance"] / 100
-
-
-@aiohttp_session
 @require_sign
 async def shift_close(*, session):
     await service_out(session=session)

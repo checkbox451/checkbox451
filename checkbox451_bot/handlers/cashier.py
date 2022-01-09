@@ -92,11 +92,11 @@ def init(dispatcher):
     @aiohttp_session
     async def shift_(message: Message, *, session):
         if not (arg := message.get_args()):
-            shift_balance = await shift.shift_balance(session=session)
-            if shift_balance is None:
+            my_shift = await shift.current_shift(session=session)
+            if my_shift is None:
                 await message.answer("Зміна закрита")
             else:
-                await message.answer(f"Баланс: {shift_balance:.02f} грн")
+                await helpers.send_report(message.answer, my_shift)
         elif arg == "close":
             income = await shift_close(
                 chat_id=message.chat.id,

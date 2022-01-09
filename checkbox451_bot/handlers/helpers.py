@@ -109,3 +109,44 @@ def text_to_goods(text):
     ]
 
     return goods
+
+
+def prepare_report(sales, returns, header, header_no_returns):
+    sales /= 100
+    returns /= 100
+    proceeds = sales - returns
+
+    if sales:
+        if returns:
+            report = (
+                f"{header}:\n<pre>"
+                f"Одержано: {sales:>10.2f} грн\n"
+                f"Повернуто:{returns:>10.2f} грн\n"
+                f"Виручка:  {proceeds:>10.2f} грн"
+                "</pre>"
+            )
+        else:
+            report = f"{header_no_returns}: {proceeds:.2f} грн"
+
+        return report
+
+
+async def send_report(answer, shift):
+    cash_sales = shift["balance"]["cash_sales"]
+    card_sales = shift["balance"]["card_sales"]
+    cash_returns = shift["balance"]["cash_returns"]
+    card_returns = shift["balance"]["card_returns"]
+
+    if cash_report := prepare_report(
+        cash_sales, cash_returns, "Готівка", "Готівкова виручка"
+    ):
+        await answer(cash_report)
+
+    if card_report := prepare_report(
+        card_sales, card_returns, "Картка", "Карткова виручка"
+    ):
+        await answer(card_report)
+
+    if cash_report and card_report:
+        total = cash_sales - cash_returns + card_sales - card_returns
+        await answer(f"Всього: {total / 100:.2f} грн")
