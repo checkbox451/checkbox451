@@ -3,15 +3,11 @@ import os
 from json.decoder import JSONDecodeError
 from logging import getLogger
 
-from aiohttp import ClientResponseError
-
 from checkbox451_bot.checkbox_api.exceptions import CheckboxReceiptError
 from checkbox451_bot.checkbox_api.helpers import (
     aiohttp_session,
-    get,
     get_retry,
     post,
-    raise_for_status,
     require_sign,
 )
 from checkbox451_bot.checkbox_api.shift import current_shift, open_shift
@@ -24,7 +20,7 @@ receipt_params = {}
 @aiohttp_session
 async def create_receipt(goods, cashless=False, *, session):
     payment = sum(good["price"] * good["quantity"] / 1000 for good in goods)
-    receipt = {
+    data = {
         "goods": [
             {
                 "good": good,
@@ -40,13 +36,9 @@ async def create_receipt(goods, cashless=False, *, session):
         ],
     }
 
-    async with post("/receipts/sell", session=session, **receipt) as response:
-        try:
-            await raise_for_status(response)
-        except ClientResponseError:
-            raise CheckboxReceiptError("Не вдалось створити чек")
-
-        receipt = await response.json()
+    receipt = await post(
+        "/receipts/sell", session=session, exc=CheckboxReceiptError, **data
+    )
 
     receipt_id = receipt["id"]
     log.info("receipt: %s", receipt_id)
@@ -55,18 +47,19 @@ async def create_receipt(goods, cashless=False, *, session):
 
 @aiohttp_session
 async def wait_receipt_sign(receipt_id, *, session):
+    receipt = receipt_id
     for _ in range(10):
-        async with get_retry(
-            f"/receipts/{receipt_id}",
-            session=session,
-        ) as response:
-            try:
-                receipt = await response.json()
-            except JSONDecodeError:
-                pass
-            else:
-                if receipt["status"] == "DONE":
-                    return receipt["tax_url"]
+        try:
+            receipt = await get_retry(
+                f"/receipts/{receipt_id}",
+                session=session,
+                exc=CheckboxReceiptError,
+            )
+        except JSONDecodeError:
+            pass
+        else:
+            if receipt["status"] == "DONE":
+                return receipt["tax_url"]
 
         await asyncio.sleep(1)
 
@@ -75,24 +68,24 @@ async def wait_receipt_sign(receipt_id, *, session):
 
 
 async def get_receipt_qrcode(receipt_id, *, session):
-    async with get_retry(
+    qrcode = await get_retry(
         f"/receipts/{receipt_id}/qrcode",
         session=session,
-    ) as response:
-        await raise_for_status(response)
-        qrcode = await response.read()
+        loader="read",
+        exc=CheckboxReceiptError,
+    )
 
     return qrcode
 
 
 async def get_receipt_text(receipt_id, *, session):
-    async with get_retry(
+    receipt_text = await get_retry(
         f"/receipts/{receipt_id}/text",
         session=session,
+        loader="text",
+        exc=CheckboxReceiptError,
         **receipt_params,
-    ) as response:
-        await raise_for_status(response)
-        receipt_text = await response.text()
+    )
 
     return receipt_text
 
@@ -124,8 +117,9 @@ async def sell(goods, cashless=False, *, session):
 
 @aiohttp_session
 async def get_receipt_data(receipt_id, *, session):
-    async with get(f"/receipts/{receipt_id}", session=session) as response:
-        receipt_url = (await response.json())["tax_url"]
+    receipt_url = await get_retry(
+        f"/receipts/{receipt_id}", session=session, exc=CheckboxReceiptError
+    )
     receipt_qr = await get_receipt_qrcode(receipt_id, session=session)
     receipt_text = await get_receipt_text(receipt_id, session=session)
 
@@ -134,13 +128,11 @@ async def get_receipt_data(receipt_id, *, session):
 
 @aiohttp_session
 async def search_receipt(fiscal_code, *, session):
-    async with get(
-        "/receipts/search",
-        session=session,
-        fiscal_code=fiscal_code,
-    ) as response:
-        await raise_for_status(response)
-        results = (await response.json())["results"]
+    results = (
+        await get_retry(
+            "/receipts/search", session=session, fiscal_code=fiscal_code
+        )
+    )["results"]
 
     if results:
         return results[0]["id"]

@@ -1,16 +1,20 @@
+import asyncio
 import os
 import posixpath
-from contextlib import asynccontextmanager
 from functools import wraps
 from json import JSONDecodeError
 from logging import getLogger
+from typing import Type
 
 import aiohttp
-from aiohttp import ClientResponse, ClientTimeout
+from aiohttp import ClientResponse, ClientSession, ClientTimeout
 
 import checkbox451_bot
 from checkbox451_bot.checkbox_api.auth import sign_in
-from checkbox451_bot.checkbox_api.exceptions import CheckboxSignError
+from checkbox451_bot.checkbox_api.exceptions import (
+    CheckboxAPIError,
+    CheckboxSignError,
+)
 
 log = getLogger(__name__)
 
@@ -48,16 +52,18 @@ def headers(*, auth=True, lic=False):
     return _headers
 
 
-def get(path, *, session, **kwargs):
+async def get_retry(
+    path,
+    *,
+    session: ClientSession,
+    loader="json",
+    exc=CheckboxAPIError,
+    **kwargs,
+):
     url = endpoint(path)
-    return session.get(url, headers=headers(), params=kwargs)
 
-
-@asynccontextmanager
-async def get_retry(path, *, session, **kwargs):
-    url = endpoint(path)
-
-    err = None
+    err = exc("Невідома помилка")
+    response = None
     for attempt in range(6):
         try:
             async with session.get(
@@ -66,20 +72,66 @@ async def get_retry(path, *, session, **kwargs):
                 params=kwargs,
                 timeout=ClientTimeout(total=0.5 * 1.5 ** attempt),
             ) as response:
-                yield response
-        except Exception as e:
+                if response.status < 500:
+                    return await check_response(
+                        response, loader=loader, exc=exc
+                    )
+        except asyncio.TimeoutError as e:
             err = e
-            log.warning("retry attempt: %s (%s)", attempt + 1, path)
-            continue
-        else:
-            return
+        log.warning("retry attempt: %s (%s)", attempt + 1, path)
+        await asyncio.sleep(1)
+
+    if response:
+        await raise_on_error(response, exc)
 
     raise err
 
 
-def post(path, *, session, lic=False, **kwargs):
+async def post(
+    path,
+    *,
+    session: ClientSession,
+    lic=False,
+    exc=CheckboxAPIError,
+    **kwargs,
+):
     url = endpoint(path)
-    return session.post(url, headers=headers(lic=lic), json=kwargs)
+    async with session.post(
+        url, headers=headers(lic=lic), json=kwargs
+    ) as response:
+        if response.ok:
+            return await response.json()
+
+        await raise_on_error(response, exc)
+
+
+async def raise_on_error(
+    response: ClientResponse, exc: Type[CheckboxAPIError]
+):
+    response.content.set_exception(None)
+
+    try:
+        result = await response.json()
+    except Exception as e:
+        raise exc(response.reason) from e
+
+    message = result["message"]
+    if detail := result.get("detail"):
+        message += f": {detail}"
+
+    raise exc(message)
+
+
+async def check_response(
+    response: ClientResponse,
+    *,
+    loader="json",
+    exc: Type[CheckboxAPIError] = CheckboxAPIError,
+):
+    if response.ok:
+        return await getattr(response, loader)()
+
+    await raise_on_error(response, exc)
 
 
 async def raise_for_status(response: ClientResponse):
@@ -101,16 +153,12 @@ async def raise_for_status(response: ClientResponse):
 
 
 async def check_sign(*, session):
-    async with get_retry(
-        "/cashier/check-signature",
-        session=session,
-    ) as response:
-        await raise_for_status(response)
-
-        try:
-            result = await response.json()
-        except JSONDecodeError:
-            return False
+    try:
+        result = await get_retry(
+            "/cashier/check-signature", session=session, exc=CheckboxSignError
+        )
+    except JSONDecodeError:
+        return False
 
     return result["online"]
 
