@@ -10,7 +10,6 @@ from aiogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     Message,
-    ParseMode,
 )
 from aiogram.utils.exceptions import RetryAfter
 
@@ -59,7 +58,6 @@ async def send_receipt(
     await bot.obj.send_message(
         user_id,
         f"<pre>{receipt_text}</pre>",
-        parse_mode=ParseMode.HTML,
         reply_markup=keyboard,
     )
 
@@ -68,7 +66,6 @@ async def error(user_id, exception):
     await bot.obj.send_message(
         user_id,
         f"<b>Помилка:</b> <code>{exception}</code>",
-        parse_mode=ParseMode.HTML,
     )
 
 
