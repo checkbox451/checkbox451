@@ -52,20 +52,20 @@ async def shift_close(*, logger: Any = log, chat_id=None, session):
     today = date.today().isoformat()
     logger.info(f"{today}: shift closed: income {income:.02f}")
 
-    if shift:
+    if income:
         try:
             await gsheet.append_row([today, income], worksheet_title)
         except Exception as e:
             await error(str(e))
             logger.error(f"shift reporting failed: {e!s}")
 
-        answer = functools.partial(
-            helpers.broadcast,
-            chat_id,
-            auth.SUPERVISOR,
-            bot.obj.send_message,
-        )
-        await helpers.send_report(answer, shift)
+    answer = functools.partial(
+        helpers.broadcast,
+        chat_id,
+        auth.SUPERVISOR,
+        bot.obj.send_message,
+    )
+    await helpers.send_report(answer, shift)
 
     return income
 
