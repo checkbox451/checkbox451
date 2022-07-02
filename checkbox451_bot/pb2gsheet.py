@@ -170,9 +170,18 @@ def transaction_to_goods(transaction):
 @aiohttp_session
 async def create_receipt(transaction, *, session):
     if goods := transaction_to_goods(transaction):
-        receipt_id = await checkbox_api.receipt.sell(
-            goods, cashless=True, session=session
-        )
+        try:
+            receipt_id = await checkbox_api.receipt.sell(
+                goods, cashless=True, session=session
+            )
+        except Exception as e:
+            await helpers.broadcast(
+                None,
+                auth.SUPERVISOR,
+                bot.obj.send_message,
+                "Помилка створення чеку!",
+            )
+            raise e
     else:
         return
 
