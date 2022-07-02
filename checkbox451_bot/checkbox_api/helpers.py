@@ -70,7 +70,7 @@ async def get_retry(
                 url,
                 headers=headers(),
                 params=kwargs,
-                timeout=ClientTimeout(total=0.5 * 1.5 ** attempt),
+                timeout=ClientTimeout(total=0.5 * 1.5**attempt),
             ) as response:
                 if response.status < 500:
                     return await check_response(
