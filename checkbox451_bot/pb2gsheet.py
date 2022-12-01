@@ -18,15 +18,15 @@ from checkbox451_bot.handlers import bot, helpers
 
 URL = "https://acp.privatbank.ua/api/statements/transactions"
 sender_pat = re.compile(
-    r"^(?:.+(?:,\s*|Переказ\s+вiд\s+)(\S+\s+\S+(?:\s+\S+)?))\s*$"
+    r"^.+(?:,\s*|Переказ\s+вiд\s+|Вiд\s+)(\S+\s+\S+(?:\s+\S+)?)\s*$"
 )
 
 accounts = [
     acc for acc in os.environ.get("PRIVAT24_ACCOUNTS", "").split(",") if acc
 ]
 
-privat24_api_id = os.environ["PRIVAT24_API_ID"]
-privat24_api_token = os.environ["PRIVAT24_API_TOKEN"]
+privat24_api_id = os.environ.get("PRIVAT24_API_ID")
+privat24_api_token = os.environ.get("PRIVAT24_API_TOKEN")
 privat24_polling_interval = int(
     os.environ.get("PRIVAT24_POLLING_INTERVAL") or 15
 )

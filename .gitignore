@@ -1,7 +1,7 @@
 /.env
 /.idea/
-/checkbox451_bot.db
 /*.yaml
 /*.png
 /*.egg-info
 /*.json
+/**/checkbox451_bot.db
