@@ -1,3 +1,3 @@
 __appname__ = "checkbox451"
-__version__ = "0.5.2"
+__version__ = "0.5.3"
 __product__ = f"{__appname__} v{__version__}"
