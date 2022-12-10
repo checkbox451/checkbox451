@@ -1,11 +1,12 @@
-import os
 from logging import getLogger
 
 import gspread_asyncio
 from google.oauth2.service_account import Credentials
 
-service_account_file = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
-spreadsheet_key = os.environ.get("GOOGLE_SPREADSHEET_KEY")
+from checkbox451_bot.config import Config
+
+service_account_file = Config().get("google", "application_credentials")
+spreadsheet_key = Config().get("google", "spreadsheet_key")
 
 log = getLogger(__name__)
 

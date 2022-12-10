@@ -1,39 +1,17 @@
-version: "2"
+version: "3.1"
 
 services:
   bot:
     build:
       context: .
-      args:
-        TELEGRAM_BOT_TOKEN: $TELEGRAM_BOT_TOKEN
-        TELEGRAM_BOT_ADMIN: $TELEGRAM_BOT_ADMIN
-        CHECKBOX_PIN: $CHECKBOX_PIN
-        CHECKBOX_LICENSE: $CHECKBOX_LICENSE
-        CHECKBOX_API_URL: $CHECKBOX_API_URL
-        PRINTER_CONFIG: $PRINTER_CONFIG
-        PRINT_WIDTH: $PRINT_WIDTH
-        PRINT_BOTTOM_MARGIN: $PRINT_BOTTOM_MARGIN
-        PRINT_LOGO_PATH: $PRINT_LOGO_PATH
-        PRINT_LOGO_IMPL: $PRINT_LOGO_IMPL
-        SHIFT_CLOSE_TIME: $SHIFT_CLOSE_TIME
-        GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS
-        GOOGLE_SPREADSHEET_KEY: $GOOGLE_SPREADSHEET_KEY
-        GOOGLE_WORKSHEET_TITLE: $GOOGLE_WORKSHEET_TITLE
-        GOOGLE_WORKSHEET_TITLE_CASHLESS: $GOOGLE_WORKSHEET_TITLE_CASHLESS
-        PRIVAT24_API_ID: $PRIVAT24_API_ID
-        PRIVAT24_API_TOKEN: $PRIVAT24_API_TOKEN
-        PRIVAT24_ACCOUNTS: $PRIVAT24_ACCOUNTS
-        PRIVAT24_POLLING_INTERVAL: $PRIVAT24_POLLING_INTERVAL
-        PRIVAT24_GOOD_NAME_DEFAULT: $PRIVAT24_GOOD_NAME_DEFAULT
-        DB_DIR: /db
     volumes:
-      - db:/db
+      - type: bind
+        source: ${PWD}
+        target: /checkbox451_bot
+
     restart: unless-stopped
     logging:
       driver: "json-file"
       options:
           max-file: "5"
           max-size: 10m
-
-volumes:
-  db:

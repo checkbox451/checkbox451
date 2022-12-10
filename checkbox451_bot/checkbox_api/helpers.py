@@ -15,6 +15,7 @@ from checkbox451_bot.checkbox_api.exceptions import (
     CheckboxAPIError,
     CheckboxSignError,
 )
+from checkbox451_bot.config import Config
 
 log = getLogger(__name__)
 
@@ -47,7 +48,9 @@ def headers(*, auth=True, lic=False):
         _headers["Authorization"] = sign_in()
 
     if lic:
-        _headers["X-License-Key"] = os.environ["CHECKBOX_LICENSE"]
+        _headers["X-License-Key"] = Config().get(
+            "checkbox", "license", required=True
+        )
 
     return _headers
 
@@ -180,7 +183,7 @@ def init():
     api_url = "https://{}api.checkbox.in.ua/".format(
         "dev-" if dev_mode else ""
     )
-    api_url = os.environ.get("CHECKBOX_API_URL") or api_url
+    api_url = Config().get("checkbox", "api_url", default=api_url)
     log.info(f"{api_url=}")
 
     return api_url

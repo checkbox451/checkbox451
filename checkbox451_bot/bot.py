@@ -1,15 +1,19 @@
-import os
 from contextlib import asynccontextmanager
 
 from aiogram import Bot
 from aiogram.types import ParseMode
+
+from checkbox451_bot.config import Config
 
 obj: Bot
 
 
 def init():
     global obj
-    obj = Bot(os.environ["TELEGRAM_BOT_TOKEN"], parse_mode=ParseMode.HTML)
+    obj = Bot(
+        Config().get("telegram_bot", "token", required=True),
+        parse_mode=ParseMode.HTML,
+    )
 
 
 @asynccontextmanager

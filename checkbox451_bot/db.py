@@ -1,6 +1,4 @@
-import os
 from logging import getLogger
-from pathlib import Path
 
 from aiogram.types import Contact
 from sqlalchemy import (
@@ -64,10 +62,7 @@ class Role(Base):
 
 
 def init():
-    db_path = str(Path(os.environ.get("DB_DIR", ".")) / "checkbox451_bot.db")
-    log.info(f"{db_path=!r}")
-
-    engine = create_engine(f"sqlite:///{db_path}")
+    engine = create_engine(f"sqlite:///checkbox451_bot.db")
     Base.metadata.create_all(engine)
     return scoped_session(sessionmaker(bind=engine))
 

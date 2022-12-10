@@ -1,7 +1,6 @@
 import asyncio
 import json
 import logging
-import os
 import re
 from datetime import date, datetime, timedelta
 from enum import Enum
@@ -14,6 +13,7 @@ from pydantic import BaseModel, root_validator, validator
 
 from checkbox451_bot import __product__, auth, checkbox_api, gsheet
 from checkbox451_bot.checkbox_api.helpers import aiohttp_session
+from checkbox451_bot.config import Config
 from checkbox451_bot.handlers import bot, helpers
 
 URL = "https://acp.privatbank.ua/api/statements/transactions"
@@ -22,17 +22,17 @@ sender_pat = re.compile(
 )
 
 accounts = [
-    acc for acc in os.environ.get("PRIVAT24_ACCOUNTS", "").split(",") if acc
+    acc for acc in Config().get("privat24", "accounts", default=()) if acc
 ]
 
-privat24_api_id = os.environ.get("PRIVAT24_API_ID")
-privat24_api_token = os.environ.get("PRIVAT24_API_TOKEN")
-privat24_polling_interval = int(
-    os.environ.get("PRIVAT24_POLLING_INTERVAL") or 15
+privat24_api_id = Config().get("privat24", "api", "id")
+privat24_api_token = Config().get("privat24", "api", "token")
+privat24_polling_interval = Config().get(
+    "privat24", "polling_interval", default=15
 )
 
-transactions_file = Path(os.environ.get("DB_DIR", ".")) / "transactions.json"
-worksheet_title = os.environ.get("GOOGLE_WORKSHEET_TITLE_CASHLESS")
+transactions_file = Path("transactions.json")
+worksheet_title = Config().get("google", "worksheet", "title_cashless")
 
 log = logging.getLogger(__name__)
 
@@ -156,7 +156,7 @@ async def bot_nofify(transaction):
 
 
 def transaction_to_goods(transaction):
-    if name := os.environ.get("PRIVAT24_GOOD_NAME_DEFAULT"):
+    if name := Config().get("privat24", "good_name_default"):
         return [
             {
                 "code": f"{name} {transaction.sum_e}",

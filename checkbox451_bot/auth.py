@@ -1,5 +1,4 @@
 import functools
-import os
 from enum import Enum, unique
 from logging import getLogger
 from typing import Union
@@ -8,6 +7,7 @@ from aiogram.types import CallbackQuery, Contact, Message
 from sqlalchemy_utils import PhoneNumber
 
 from checkbox451_bot import bot, db, kbd
+from checkbox451_bot.config import Config
 
 log = getLogger(__name__)
 
@@ -20,9 +20,8 @@ _admins = []
 
 def init():
     _admins.extend(
-        PhoneNumber(phone_number, region="UA")
-        for phone_number in os.environ["TELEGRAM_BOT_ADMIN"].split(",")
-        if phone_number
+        PhoneNumber(ph_number, region="UA")
+        for ph_number in Config().get("telegram_bot", "admins", required=True)
     )
 
 

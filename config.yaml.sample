@@ -1,0 +1,35 @@
+checkbox:
+  pin: "<cashier pin>"
+  license: "<cash register license key>"
+  api_url: ""
+  shift_close_time: "<time to close a shift>"
+
+telegram_bot:
+  token: "<ask @BotFather>"
+  admins:
+    - "<phone number>"
+
+# PS-H58-WiFi
+print:
+  width: 32
+  bottom_margin: 4
+  logo:
+    path: ""
+    impl: "bitImageColumn"
+
+google:
+  application_credentials: "<service account file>"
+  spreadsheet_key: "<spreadsheet unique key>"
+  worksheet:
+    title: "<worksheet name>"
+    title_cashless: "<worksheet name to store cashless transactions>"
+
+# Cashless transactions
+privat24:
+  api:
+    id: "<Privat24 for Business API ID>"
+    token: "<Privat24 for Business API token>"
+  accounts:
+    - "<accounts to watch, all if empty>"
+  polling_interval: 15
+  good_name_default: "<default good name for cashless receipts>"

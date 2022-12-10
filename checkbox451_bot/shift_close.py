@@ -1,7 +1,6 @@
 import asyncio
 import functools
 import logging
-import os
 from datetime import date
 from typing import Any
 
@@ -9,10 +8,11 @@ import schedule
 
 from checkbox451_bot import auth, bot, checkbox_api, gsheet
 from checkbox451_bot.checkbox_api.helpers import aiohttp_session
+from checkbox451_bot.config import Config
 from checkbox451_bot.handlers import helpers
 
-worksheet_title = os.environ.get("GOOGLE_WORKSHEET_TITLE")
-shift_close_time = os.environ.get("SHIFT_CLOSE_TIME")
+worksheet_title = Config().get("google", "worksheet", "title")
+shift_close_time = Config().get("checkbox", "shift_close_time")
 
 log = logging.getLogger(__name__)
 

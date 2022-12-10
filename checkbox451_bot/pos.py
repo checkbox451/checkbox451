@@ -1,19 +1,21 @@
 import asyncio
-import os
 from logging import getLogger
+from pathlib import Path
 from typing import Optional
 
-from escpos.config import Config
+from escpos.config import Config as EscposConfig
 from escpos.escpos import Escpos
 
-bottom = int(os.environ.get("PRINT_BOTTOM_MARGIN") or 4)
-logo = os.environ.get("PRINT_LOGO_PATH")
-logo_impl = os.environ.get("PRINT_LOGO_IMPL") or "bitImageRaster"
+from checkbox451_bot.config import Config
+
+bottom = Config().get("print", "bottom_margin", default=4)
+logo = Config().get("print", "logo", "path")
+logo_impl = Config().get("print", "logo", "impl", default="bitImageRaster")
 
 log = getLogger(__name__)
 
 
-class PrinterConfig(Config):
+class PrinterConfig(EscposConfig):
     def __repr__(self):
         args = ", ".join(f"{k}={v!r}" for k, v in self._printer_config.items())
         return f"{self._printer_name}({args})"
@@ -65,9 +67,9 @@ async def print_receipt(text):
 
 
 def init():
-    pos_yaml = os.environ.get("PRINTER_CONFIG")
+    pos_yaml = Path("pos.yaml")
 
-    if not pos_yaml:
+    if not pos_yaml.exists():
         log.warning("missing printer config file; ignoring...")
         return
 

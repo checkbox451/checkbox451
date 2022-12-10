@@ -1,8 +1,9 @@
-import os
 from logging import getLogger
 
 import cachetools.func
 import requests
+
+from checkbox451_bot.config import Config
 
 log = getLogger(__name__)
 
@@ -11,7 +12,7 @@ log = getLogger(__name__)
 def sign_in():
     from checkbox451_bot.checkbox_api.helpers import endpoint, headers
 
-    pin_code = os.environ["CHECKBOX_PIN"]
+    pin_code = Config().get("checkbox", "pin", required=True)
 
     url = endpoint("/cashier/signinPinCode")
     r = requests.post(

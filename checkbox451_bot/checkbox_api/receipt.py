@@ -1,5 +1,4 @@
 import asyncio
-import os
 from json.decoder import JSONDecodeError
 from logging import getLogger
 
@@ -11,6 +10,7 @@ from checkbox451_bot.checkbox_api.helpers import (
     require_sign,
 )
 from checkbox451_bot.checkbox_api.shift import current_shift, open_shift
+from checkbox451_bot.config import Config
 
 log = getLogger(__name__)
 
@@ -139,10 +139,8 @@ async def search_receipt(fiscal_code, *, session):
 
 
 def init():
-    print_width = os.environ.get("PRINT_WIDTH")
-
-    if print_width and print_width.isnumeric():
-        receipt_params["width"] = int(print_width)
+    if print_width := Config().get("print", "width"):
+        receipt_params["width"] = print_width
 
     log.info(f"{receipt_params=}")
 
