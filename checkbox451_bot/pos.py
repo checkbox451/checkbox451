@@ -8,10 +8,6 @@ from escpos.escpos import Escpos
 
 from checkbox451_bot.config import Config
 
-bottom = Config().get("print", "bottom_margin", default=4)
-logo = Config().get("print", "logo", "path")
-logo_impl = Config().get("print", "logo", "impl", default="bitImageRaster")
-
 log = getLogger(__name__)
 
 
@@ -51,9 +47,13 @@ async def _printer() -> Optional[Escpos]:
 
 async def _print_receipt(printer, text):
     try:
-        if logo:
+        if logo := Config().get("print", "logo", "path"):
+            logo_impl = Config().get(
+                "print", "logo", "impl", default="bitImageRaster"
+            )
             printer.image(logo, impl=logo_impl)
 
+        bottom = Config().get("print", "bottom_margin", default=4)
         printer.text(text + "\n" * bottom)
     finally:
         config.close_printer()

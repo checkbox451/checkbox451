@@ -1,7 +1,7 @@
 import asyncio
 import os
 import posixpath
-from functools import wraps
+from functools import lru_cache, wraps
 from json import JSONDecodeError
 from logging import getLogger
 from typing import Type
@@ -19,8 +19,6 @@ from checkbox451_bot.config import Config
 
 log = getLogger(__name__)
 
-api_url: str
-
 
 def aiohttp_session(func):
     @wraps(func)
@@ -35,7 +33,7 @@ def aiohttp_session(func):
 
 
 def endpoint(path: str):
-    return posixpath.join(api_url, "api/v1", path.lstrip("/"))
+    return posixpath.join(api_url(), "api/v1", path.lstrip("/"))
 
 
 def headers(*, auth=True, lic=False):
@@ -176,17 +174,13 @@ def require_sign(func):
     return wrapper
 
 
-def init():
-    global api_url
-
+@lru_cache(maxsize=1)
+def api_url():
     dev_mode = bool(os.environ.get("DEV_MODE"))
     api_url = "https://{}api.checkbox.in.ua/".format(
         "dev-" if dev_mode else ""
     )
     api_url = Config().get("checkbox", "api_url", default=api_url)
+
     log.info(f"{api_url=}")
-
     return api_url
-
-
-init()

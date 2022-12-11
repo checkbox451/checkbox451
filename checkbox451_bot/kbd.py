@@ -17,11 +17,5 @@ start = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add(
 )
 
 goods = ReplyKeyboardMarkup(
-    resize_keyboard=True,
-    one_time_keyboard=True,
-    row_width=1,
-)
-
-
-def init():
-    goods.add(*items)
+    resize_keyboard=True, one_time_keyboard=True, row_width=1
+).add(*items())

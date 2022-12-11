@@ -12,9 +12,6 @@ from checkbox451_bot.checkbox_api.helpers import aiohttp_session
 from checkbox451_bot.config import Config
 from checkbox451_bot.handlers import helpers
 
-worksheet_title = Config().get("google", "worksheet", "title")
-shift_close_time = Config().get("checkbox", "shift_close_time")
-
 log = logging.getLogger(__name__)
 
 
@@ -54,6 +51,7 @@ async def shift_close(*, logger: Any = log, chat_id=None, session):
     logger.info(f"{today}: shift closed: income {income:.02f}")
 
     if income:
+        worksheet_title = Config().get("google", "worksheet", "title")
         try:
             await gsheet.append_row([today, income], worksheet_title)
         except Exception as e:
@@ -72,7 +70,7 @@ async def shift_close(*, logger: Any = log, chat_id=None, session):
 
 
 async def scheduler():
-    if not shift_close_time:
+    if not (shift_close_time := Config().get("checkbox", "shift_close_time")):
         log.warning("missing shift close time; ignoring...")
         return
 

@@ -4,6 +4,7 @@ import logging
 import re
 from datetime import date, datetime, timedelta
 from enum import Enum
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -17,25 +18,20 @@ from checkbox451_bot.checkbox_api.helpers import aiohttp_session
 from checkbox451_bot.config import Config
 from checkbox451_bot.handlers import helpers
 
+log = logging.getLogger(__name__)
+
 URL = "https://acp.privatbank.ua/api/statements/transactions"
 sender_pat = re.compile(
     r"^.+(?:,\s*|Переказ\s+вiд\s+|Вiд\s+)(\S+\s+\S+(?:\s+\S+)?)\s*$"
 )
-
-accounts = [
-    acc for acc in Config().get("privat24", "accounts", default=()) if acc
-]
-
-privat24_api_id = Config().get("privat24", "api", "id")
-privat24_api_token = Config().get("privat24", "api", "token")
-privat24_polling_interval = Config().get(
-    "privat24", "polling_interval", default=15
-)
-
 transactions_file = Path("transactions.json")
-worksheet_title = Config().get("google", "worksheet", "title_cashless")
 
-log = logging.getLogger(__name__)
+
+@lru_cache(maxsize=1)
+def accounts():
+    return [
+        acc for acc in Config().get("privat24", "accounts", default=()) if acc
+    ]
 
 
 class TranType(str, Enum):
@@ -90,6 +86,9 @@ class Transaction(BaseModel):
 
 
 async def get_transactions():
+    privat24_api_id = Config().get("privat24", "api", "id")
+    privat24_api_token = Config().get("privat24", "api", "token")
+
     transactions = []
 
     exist_next_page = True
@@ -143,6 +142,7 @@ async def read_transactions(logger):
 
 async def store_transaction(transaction: Transaction):
     row = [transaction.dat_od, transaction.sum_e, transaction.sender]
+    worksheet_title = Config().get("google", "worksheet", "title_cashless")
     await gsheet.append_row(row, worksheet_title)
 
 
@@ -234,7 +234,7 @@ async def process_transactions(prev, logger):
 
         for transaction in transactions:
             if transaction.trantype == TranType.CREDIT and (
-                not accounts or transaction.aut_my_acc in accounts
+                not accounts() or transaction.aut_my_acc in accounts()
             ):
                 logger.info(transaction.orig)
 
@@ -266,6 +266,12 @@ async def process_transactions(prev, logger):
 
 
 async def run(logger: Any = log):
+    privat24_api_id = Config().get("privat24", "api", "id")
+    privat24_api_token = Config().get("privat24", "api", "token")
+    privat24_polling_interval = Config().get(
+        "privat24", "polling_interval", default=15
+    )
+
     if not privat24_api_id or not privat24_api_token:
         log.warning("missing privat24 api credentials; ignoring...")
         return

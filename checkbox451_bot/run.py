@@ -9,18 +9,7 @@ def main():
 
     log.info(f"{version=}")
 
-    from checkbox451_bot import (
-        auth,
-        goods,
-        handlers,
-        kbd,
-        pb2gsheet,
-        shift_close,
-    )
-
-    auth.init()
-    goods.init()
-    kbd.init()
+    from checkbox451_bot import handlers, pb2gsheet, shift_close
 
     loop = asyncio.get_event_loop()
     loop.create_task(pb2gsheet.run())

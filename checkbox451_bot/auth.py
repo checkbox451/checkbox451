@@ -1,5 +1,5 @@
-import functools
 from enum import Enum, unique
+from functools import lru_cache, wraps
 from logging import getLogger
 from typing import Union
 
@@ -16,14 +16,13 @@ ADMIN = "ADMIN"
 CASHIER = "CASHIER"
 SUPERVISOR = "SUPERVISOR"
 
-_admins = []
 
-
-def init():
-    _admins.extend(
+@lru_cache(maxsize=1)
+def admins():
+    return [
         PhoneNumber(ph_number, region="UA")
         for ph_number in Config().get("telegram_bot", "admins", required=True)
-    )
+    ]
 
 
 @unique
@@ -58,7 +57,7 @@ class SignMode(Enum):
 
 def require(role_name):
     def decorator(handler):
-        @functools.wraps(handler)
+        @wraps(handler)
         async def wrapper(message: Union[CallbackQuery, Message]):
             if has_role(message.from_user.id, role_name):
                 return await handler(message)
@@ -117,7 +116,7 @@ def sign_in(contact: Contact):
         if SignMode.one():
             SignMode.set(SignMode.OFF)
 
-        if user.phone_number in _admins:
+        if user.phone_number in admins():
             add_role(user, ADMIN, session=session)
 
         return user

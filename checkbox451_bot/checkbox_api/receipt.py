@@ -1,4 +1,5 @@
 import asyncio
+from functools import lru_cache
 from json.decoder import JSONDecodeError
 from logging import getLogger
 
@@ -13,8 +14,6 @@ from checkbox451_bot.checkbox_api.shift import current_shift, open_shift
 from checkbox451_bot.config import Config
 
 log = getLogger(__name__)
-
-receipt_params = {}
 
 
 @aiohttp_session
@@ -84,7 +83,7 @@ async def get_receipt_text(receipt_id, *, session):
         session=session,
         loader="text",
         exc=CheckboxReceiptError,
-        **receipt_params,
+        **receipt_params(),
     )
 
     return receipt_text
@@ -138,11 +137,10 @@ async def search_receipt(fiscal_code, *, session):
         return results[0]["id"]
 
 
-def init():
+@lru_cache(maxsize=1)
+def receipt_params():
     if print_width := Config().get("print", "width"):
         receipt_params["width"] = print_width
 
     log.info(f"{receipt_params=}")
-
-
-init()
+    return receipt_params
