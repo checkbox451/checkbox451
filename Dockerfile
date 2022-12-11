@@ -1,14 +1,15 @@
-FROM ubuntu:20.04
+FROM python:3.11-slim
 
+ENV DEBIAN_FRONTEND noninteractive
+ENV PIP_NO_CACHE_DIR 1
+ENV PIP_ROOT_USER_ACTION ignore
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-RUN apt-get update
-RUN apt-get install -y --no-install-recommends bash locales python3 python3-pip sudo tzdata
-
-RUN locale-gen en_US.UTF-8
-ENV LANG en_US.UTF-8
 ENV TZ Europe/Kiev
+
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends sudo
 
 WORKDIR /checkbox451_bot
 COPY . .
