@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from aiogram.types import (
     KeyboardButton,
     ReplyKeyboardMarkup,
@@ -16,6 +18,9 @@ start = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add(
     "Створити чек",
 )
 
-goods = ReplyKeyboardMarkup(
-    resize_keyboard=True, one_time_keyboard=True, row_width=1
-).add(*items())
+
+@lru_cache(maxsize=1)
+def goods():
+    return ReplyKeyboardMarkup(
+        resize_keyboard=True, one_time_keyboard=True, row_width=1
+    ).add(*items())

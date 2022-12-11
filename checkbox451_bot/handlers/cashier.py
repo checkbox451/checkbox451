@@ -85,7 +85,7 @@ def init(dispatcher):
     @auth.require(auth.CASHIER)
     @helpers.error_handler
     async def create(message: Message):
-        await message.answer("Оберіть позицію", reply_markup=kbd.goods)
+        await message.answer("Оберіть позицію", reply_markup=kbd.goods())
 
     @dispatcher.message_handler(commands=["shift"])
     @auth.require(auth.CASHIER)
