@@ -1,6 +1,7 @@
 from aiogram.types import Message
 
-from checkbox451_bot import auth, bot, kbd
+from checkbox451_bot import auth, kbd
+from checkbox451_bot.bot import Bot
 from checkbox451_bot.handlers import helpers
 
 
@@ -23,6 +24,6 @@ def init(dispatcher):
                 await helpers.broadcast(
                     message.chat.id,
                     auth.ADMIN,
-                    bot.obj.send_message,
+                    Bot().send_message,
                     f"new user: {user}",
                 )

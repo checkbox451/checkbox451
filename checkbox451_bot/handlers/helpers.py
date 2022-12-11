@@ -13,13 +13,14 @@ from aiogram.types import (
 )
 from aiogram.utils.exceptions import RetryAfter
 
-from checkbox451_bot import auth, bot, db, kbd
+from checkbox451_bot import auth, db, kbd
+from checkbox451_bot.bot import Bot
 
 log = getLogger(__name__)
 
 
 async def start(user_id):
-    await bot.obj.send_message(user_id, "Вітаю!", reply_markup=kbd.start)
+    await Bot().send_message(user_id, "Вітаю!", reply_markup=kbd.start)
 
 
 async def broadcast(user_id, role_name, send_message, *args, **kwargs):
@@ -54,8 +55,8 @@ async def send_receipt(
         )
     )
 
-    await bot.obj.send_photo(user_id, BytesIO(receipt_qr), caption=receipt_url)
-    await bot.obj.send_message(
+    await Bot().send_photo(user_id, BytesIO(receipt_qr), caption=receipt_url)
+    await Bot().send_message(
         user_id,
         f"<pre>{receipt_text}</pre>",
         reply_markup=keyboard,
@@ -63,7 +64,7 @@ async def send_receipt(
 
 
 async def error(user_id, exception):
-    await bot.obj.send_message(
+    await Bot().send_message(
         user_id,
         f"<b>Помилка:</b> <code>{exception}</code>",
     )

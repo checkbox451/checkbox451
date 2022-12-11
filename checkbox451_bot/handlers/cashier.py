@@ -2,7 +2,8 @@ from logging import getLogger
 
 from aiogram.types import CallbackQuery, Message
 
-from checkbox451_bot import auth, bot, kbd, pos
+from checkbox451_bot import auth, kbd, pos
+from checkbox451_bot.bot import Bot
 from checkbox451_bot.checkbox_api import receipt, shift
 from checkbox451_bot.checkbox_api.helpers import aiohttp_session
 from checkbox451_bot.handlers import helpers
@@ -23,7 +24,7 @@ def init(dispatcher):
     @helpers.error_handler
     @aiohttp_session
     async def sell(message: Message, *, session):
-        await bot.obj.send_chat_action(message.chat.id, "upload_document")
+        await Bot().send_chat_action(message.chat.id, "upload_document")
 
         if (goods := helpers.text_to_goods(message.text)) is None:
             log.error("parse error: %s", message.text)

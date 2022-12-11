@@ -6,7 +6,8 @@ from typing import Any
 
 import schedule
 
-from checkbox451_bot import auth, bot, checkbox_api, gsheet
+from checkbox451_bot import auth, checkbox_api, gsheet
+from checkbox451_bot.bot import Bot
 from checkbox451_bot.checkbox_api.helpers import aiohttp_session
 from checkbox451_bot.config import Config
 from checkbox451_bot.handlers import helpers
@@ -63,7 +64,7 @@ async def shift_close(*, logger: Any = log, chat_id=None, session):
         helpers.broadcast,
         chat_id,
         auth.SUPERVISOR,
-        bot.obj.send_message,
+        Bot().send_message,
     )
     await helpers.send_report(answer, shift)
 
@@ -89,7 +90,7 @@ class Logger:
 
 
 async def main():
-    async with bot.session_close():
+    async with Bot().session_close():
         await shift_close(logger=Logger)
 
 
