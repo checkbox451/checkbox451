@@ -177,9 +177,7 @@ def require_sign(func):
 @lru_cache(maxsize=1)
 def api_url():
     dev_mode = bool(os.environ.get("DEV_MODE"))
-    api_url = "https://{}api.checkbox.in.ua/".format(
-        "dev-" if dev_mode else ""
-    )
+    api_url = "https://{}api.checkbox.ua/".format("dev-" if dev_mode else "")
     api_url = Config().get("checkbox", "api_url", default=api_url)
 
     log.info(f"{api_url=}")
