@@ -12,9 +12,10 @@ import dateutil.parser
 from pydantic import BaseModel, root_validator, validator
 
 from checkbox451_bot import __product__, auth, checkbox_api, gsheet
+from checkbox451_bot.bot import Bot
 from checkbox451_bot.checkbox_api.helpers import aiohttp_session
 from checkbox451_bot.config import Config
-from checkbox451_bot.handlers import bot, helpers
+from checkbox451_bot.handlers import helpers
 
 URL = "https://acp.privatbank.ua/api/statements/transactions"
 sender_pat = re.compile(
@@ -149,7 +150,7 @@ async def bot_nofify(transaction):
     await helpers.broadcast(
         None,
         auth.SUPERVISOR,
-        bot.obj.send_message,
+        Bot().send_message,
         f"Безготівкове зарахування: {transaction.sum_e} грн"
         + (f"\nПлатник: {transaction.sender}" if transaction.sender else ""),
     )
@@ -178,7 +179,7 @@ async def create_receipt(transaction, *, session):
             await helpers.broadcast(
                 None,
                 auth.SUPERVISOR,
-                bot.obj.send_message,
+                Bot().send_message,
                 "Помилка створення чеку!",
             )
             raise e
@@ -199,7 +200,7 @@ async def create_receipt(transaction, *, session):
         )
     except Exception as e:
         await helpers.broadcast(
-            None, auth.SUPERVISOR, bot.obj.send_message, "Чек успішно створено"
+            None, auth.SUPERVISOR, Bot().send_message, "Чек успішно створено"
         )
         raise e
 
@@ -293,7 +294,7 @@ class Logger:
 
 
 async def main():
-    async with bot.session_close():
+    async with Bot().session_close():
         await run(logger=Logger)
 
 

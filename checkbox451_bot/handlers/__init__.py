@@ -2,14 +2,12 @@ from aiogram import Dispatcher
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.utils import executor
 
-from checkbox451_bot import bot
+from checkbox451_bot.bot import Bot
 from checkbox451_bot.handlers import admin, auth, cashier, helpers
 
 
 def start_polling():
-    bot.init()
-
-    dispatcher = Dispatcher(bot.obj)
+    dispatcher = Dispatcher(Bot())
     dispatcher.middleware.setup(LoggingMiddleware())
 
     admin.init(dispatcher)

@@ -6,7 +6,8 @@ from typing import Union
 from aiogram.types import CallbackQuery, Contact, Message
 from sqlalchemy_utils import PhoneNumber
 
-from checkbox451_bot import bot, db, kbd
+from checkbox451_bot import db, kbd
+from checkbox451_bot.bot import Bot
 from checkbox451_bot.config import Config
 
 log = getLogger(__name__)
@@ -63,7 +64,7 @@ def require(role_name):
                 return await handler(message)
 
             if SignMode.enabled() or not get_role(ADMIN).users:
-                await bot.obj.send_message(
+                await Bot().send_message(
                     message.from_user.id,
                     "Потрібна авторизація",
                     reply_markup=kbd.auth,
