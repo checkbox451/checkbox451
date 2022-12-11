@@ -1,14 +1,13 @@
-version: "3.2"
+version: "2"
 
 services:
   bot:
     build:
       context: .
     volumes:
-      - type: bind
-        source: ${PWD}
-        target: /checkbox451_bot
-
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - ${PWD}:/checkbox451_bot
     restart: unless-stopped
     logging:
       driver: "json-file"
