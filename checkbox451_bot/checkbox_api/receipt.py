@@ -139,6 +139,7 @@ async def search_receipt(fiscal_code, *, session):
 
 @lru_cache(maxsize=1)
 def receipt_params():
+    receipt_params = {}
     if print_width := Config().get("print", "width"):
         receipt_params["width"] = print_width
 
