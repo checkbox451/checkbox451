@@ -89,24 +89,28 @@ def init(dispatcher):
     async def create(message: Message):
         await message.answer("👇 Оберіть позицію", reply_markup=kbd.goods())
 
-    @dispatcher.message_handler(commands=["shift"])
+    @dispatcher.message_handler(commands=["report"])
     @auth.require(auth.CASHIER)
     @helpers.error_handler
     @aiohttp_session
-    async def shift_(message: Message, *, session):
+    async def report(message: Message, *, session):
+        if (my_shift := await shift.current_shift(session=session)) is None:
+            await message.answer("🔒 Зміна закрита")
+        else:
+            await helpers.send_report(message.answer, my_shift)
+
+    @dispatcher.message_handler(commands=["close"])
+    @auth.require(auth.CASHIER)
+    @helpers.error_handler
+    @aiohttp_session
+    async def close(message: Message, *, session):
         my_shift = await shift.current_shift(session=session)
-        if not (arg := message.get_args()):
-            if my_shift is None:
-                await message.answer("🔒 Зміна закрита")
-            else:
-                await helpers.send_report(message.answer, my_shift)
-        elif arg == "close":
-            income = await shift_close(
-                chat_id=message.chat.id,
-                session=session,
-            )
-            if income is None:
-                await message.answer("🙌 Зміну вже закрито")
-            else:
-                await message.answer("👌 Зміну закрито")
-                await helpers.send_report(message.answer, my_shift)
+        income = await shift_close(
+            chat_id=message.chat.id,
+            session=session,
+        )
+        if income is None:
+            await message.answer("🙌 Зміну вже закрито")
+        else:
+            await message.answer("👌 Зміну закрито")
+            await helpers.send_report(message.answer, my_shift)
