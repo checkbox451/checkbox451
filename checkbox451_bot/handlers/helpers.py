@@ -138,12 +138,12 @@ async def send_report(answer, shift):
     card_returns = shift["balance"]["card_returns"]
 
     if cash_report := prepare_report(
-        cash_sales, cash_returns, "💵 Готівка", "💵 Готівкова виручка"
+        cash_sales, cash_returns, "💵 Готівка", "💵 Готівковий виторг"
     ):
         await answer(cash_report)
 
     if card_report := prepare_report(
-        card_sales, card_returns, "💳 Картка", "💳 Карткова виручка"
+        card_sales, card_returns, "💳 Картка", "💳 Картковий виторг"
     ):
         await answer(card_report)
 
