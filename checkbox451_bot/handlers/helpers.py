@@ -26,7 +26,8 @@ async def start(user_id):
 
 async def broadcast(user_id, role_name, send_message, *args, **kwargs):
     session = db.Session()
-    role = session.query(db.Role).get(role_name)
+    if not (role := session.query(db.Role).get(role_name)):
+        return
 
     async def send(user):
         if user.user_id != user_id:
