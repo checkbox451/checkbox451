@@ -6,9 +6,10 @@ from typing import Union
 from aiogram.types import CallbackQuery, Contact, Message
 from sqlalchemy_utils import PhoneNumber
 
-from checkbox451_bot import db, kbd
+from checkbox451_bot import db
 from checkbox451_bot.bot import Bot
 from checkbox451_bot.config import Config
+from checkbox451_bot.kbd import kbd
 
 log = getLogger(__name__)
 

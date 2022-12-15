@@ -13,14 +13,15 @@ from aiogram.types import (
 )
 from aiogram.utils.exceptions import RetryAfter
 
-from checkbox451_bot import auth, db, kbd
+from checkbox451_bot import auth, db
 from checkbox451_bot.bot import Bot
+from checkbox451_bot.kbd import kbd
 
 log = getLogger(__name__)
 
 
 async def start(user_id):
-    await Bot().send_message(user_id, "Вітаю!", reply_markup=kbd.start)
+    await Bot().send_message(user_id, "👋 Вітаю!", reply_markup=kbd.start)
 
 
 async def broadcast(user_id, role_name, send_message, *args, **kwargs):
@@ -119,17 +120,14 @@ def prepare_report(sales, returns, header, header_no_returns):
 
     if sales:
         if returns:
-            report = (
+            return (
                 f"{header}:\n<pre>"
                 f"Одержано: {sales:>10.2f} грн\n"
                 f"Повернуто:{returns:>10.2f} грн\n"
                 f"Виручка:  {proceeds:>10.2f} грн"
                 "</pre>"
             )
-        else:
-            report = f"{header_no_returns}: {proceeds:.2f} грн"
-
-        return report
+        return f"{header_no_returns}: {proceeds:.2f} грн"
 
 
 async def send_report(answer, shift):
@@ -139,15 +137,15 @@ async def send_report(answer, shift):
     card_returns = shift["balance"]["card_returns"]
 
     if cash_report := prepare_report(
-        cash_sales, cash_returns, "Готівка", "Готівкова виручка"
+        cash_sales, cash_returns, "💵 Готівка", "💵 Готівкова виручка"
     ):
         await answer(cash_report)
 
     if card_report := prepare_report(
-        card_sales, card_returns, "Картка", "Карткова виручка"
+        card_sales, card_returns, "💳 Картка", "💳 Карткова виручка"
     ):
         await answer(card_report)
 
     if cash_report and card_report:
         total = cash_sales - cash_returns + card_sales - card_returns
-        await answer(f"Всього: {total / 100:.2f} грн")
+        await answer(f"💰 Всього: {total / 100:.2f} грн")

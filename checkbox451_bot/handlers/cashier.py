@@ -2,11 +2,13 @@ from logging import getLogger
 
 from aiogram.types import CallbackQuery, Message
 
-from checkbox451_bot import auth, kbd, pos
+from checkbox451_bot import auth, pos
 from checkbox451_bot.bot import Bot
 from checkbox451_bot.checkbox_api import receipt, shift
 from checkbox451_bot.checkbox_api.helpers import aiohttp_session
 from checkbox451_bot.handlers import helpers
+from checkbox451_bot.kbd import kbd
+from checkbox451_bot.kbd.buttons import btn_cancel, btn_receipt
 from checkbox451_bot.shift_close import shift_close
 
 log = getLogger(__name__)
@@ -14,6 +16,7 @@ log = getLogger(__name__)
 
 def init(dispatcher):
     @dispatcher.message_handler(commands=["start"])
+    @dispatcher.message_handler(lambda m: m.text == btn_cancel)
     @auth.require(auth.CASHIER)
     @helpers.error_handler
     async def start(message: Message):
@@ -42,7 +45,10 @@ def init(dispatcher):
                 session=session,
             )
         except Exception as e:
-            await message.answer("Чек успішно створено")
+            await message.answer(
+                "⚠️ Чек успішно створено, але виникла помилка його "
+                "завантаження"
+            )
             raise e
 
         await helpers.send_receipt(
@@ -77,25 +83,21 @@ def init(dispatcher):
         await pos.print_receipt(callback_query.message.text)
         return await callback_query.answer("Друкую…")
 
-    start_btn = (
-        btn if isinstance(btn := kbd.start.keyboard[0][0], str) else btn.text
-    )
-
-    @dispatcher.message_handler(lambda m: m.text == start_btn)
+    @dispatcher.message_handler(lambda m: m.text == btn_receipt)
     @auth.require(auth.CASHIER)
     @helpers.error_handler
     async def create(message: Message):
-        await message.answer("Оберіть позицію", reply_markup=kbd.goods())
+        await message.answer("👇 Оберіть позицію", reply_markup=kbd.goods())
 
     @dispatcher.message_handler(commands=["shift"])
     @auth.require(auth.CASHIER)
     @helpers.error_handler
     @aiohttp_session
     async def shift_(message: Message, *, session):
+        my_shift = await shift.current_shift(session=session)
         if not (arg := message.get_args()):
-            my_shift = await shift.current_shift(session=session)
             if my_shift is None:
-                await message.answer("Зміна закрита")
+                await message.answer("🔒 Зміна закрита")
             else:
                 await helpers.send_report(message.answer, my_shift)
         elif arg == "close":
@@ -104,9 +106,7 @@ def init(dispatcher):
                 session=session,
             )
             if income is None:
-                await message.answer("Зміну вже закрито")
+                await message.answer("🙌 Зміну вже закрито")
             else:
-                await message.answer(
-                    "Зміну закрито"
-                    + (f"\nДохід {income:.02f} грн" if income else "")
-                )
+                await message.answer("👌 Зміну закрито")
+                await helpers.send_report(message.answer, my_shift)

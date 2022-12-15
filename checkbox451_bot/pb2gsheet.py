@@ -151,8 +151,8 @@ async def bot_nofify(transaction):
         None,
         auth.SUPERVISOR,
         Bot().send_message,
-        f"Безготівкове зарахування: {transaction.sum_e} грн"
-        + (f"\nПлатник: {transaction.sender}" if transaction.sender else ""),
+        f"💸 Безготівкове зарахування: {transaction.sum_e} грн"
+        + (f"\n💁 Платник: {transaction.sender}" if transaction.sender else ""),
     )
 
 

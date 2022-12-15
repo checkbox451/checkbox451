@@ -1,10 +1,11 @@
 from aiogram.types import Message
 
-from checkbox451_bot import auth, db, kbd
+from checkbox451_bot import auth, db
 from checkbox451_bot.bot import Bot
 from checkbox451_bot.checkbox_api import receipt
 from checkbox451_bot.checkbox_api.helpers import aiohttp_session
 from checkbox451_bot.handlers import helpers
+from checkbox451_bot.kbd import kbd
 
 
 def init(dispatcher):
