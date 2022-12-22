@@ -3,7 +3,7 @@ aiohttp==3.8.3
 cachetools==5.2.0
 google-auth-oauthlib==0.8.0
 gspread-asyncio==1.7.1
-phonenumbers==8.13.2
+phonenumbers==8.13.3
 pydantic==1.10.2
 pygsheets==2.0.6
 python-escpos==3.0a8
