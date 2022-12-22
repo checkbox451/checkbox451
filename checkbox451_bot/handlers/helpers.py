@@ -52,7 +52,7 @@ async def send_receipt(
 ):
     keyboard = InlineKeyboardMarkup().add(
         InlineKeyboardButton(
-            "Друкувати",
+            "📄 Друкувати",
             callback_data=f"print:{receipt_id}",
         )
     )
