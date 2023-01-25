@@ -1,6 +1,6 @@
 import pytest
 
-from checkbox451_bot import pb2gsheet
+from checkbox451_bot import gsheet
 
 
 @pytest.mark.parametrize(
@@ -21,7 +21,7 @@ from checkbox451_bot import pb2gsheet
     ],
 )
 def test_sender_pat(osnd, sender):
-    assert pb2gsheet.sender_pat.match(osnd).group(1) == sender
+    assert gsheet.privat24.sender_pat.match(osnd).group(1) == sender
 
 
 @pytest.mark.parametrize(
@@ -33,4 +33,4 @@ def test_sender_pat(osnd, sender):
     ],
 )
 def test_sender_pat_no_match(osnd):
-    assert pb2gsheet.sender_pat.match(osnd) is None
+    assert gsheet.privat24.sender_pat.match(osnd) is None

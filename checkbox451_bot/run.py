@@ -12,8 +12,8 @@ def main():
     from checkbox451_bot import (
         checkbox_api,
         goods,
+        gsheet,
         handlers,
-        pb2gsheet,
         shift_close,
     )
 
@@ -21,7 +21,7 @@ def main():
     checkbox_api.receipt.receipt_params()
 
     loop = asyncio.get_event_loop()
-    loop.create_task(pb2gsheet.run())
+    loop.create_task(gsheet.privat24.Privat24TransactionProcessor().run())
     loop.create_task(shift_close.scheduler())
 
     handlers.start_polling()
