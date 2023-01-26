@@ -110,7 +110,8 @@ async def post(
 async def raise_on_error(
     response: ClientResponse, exc: Type[CheckboxAPIError]
 ):
-    response.content.set_exception(None)
+    if response.status < 500:
+        response.content.set_exception(None)
 
     try:
         result = await response.json()
