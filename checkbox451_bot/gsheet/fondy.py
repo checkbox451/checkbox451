@@ -73,29 +73,40 @@ class FondyAPI:
 
         start_date = date.today() - timedelta(days=7)
         start_time = datetime.combine(start_date, time.min)
-        data = dict(
-            on_page=500,
-            page=1,
-            filters=[
-                {
-                    "s": "tran_time",
-                    "m": "from",
-                    "v": str(start_time),
-                }
-            ],
-            merchant_id=merchant_id,
-            report_id=403,
-        )
 
-        async with session.post(url, headers=headers, json=data) as r:
-            r.raise_for_status()
-            response = await r.json(content_type=None)
+        result = []
 
-        keys = response["fields"]
-        values_list = response["data"]
-        result = [
-            {k: v for k, v in zip(keys, values)} for values in values_list
-        ]
+        on_page = 500
+        page = 0
+        rows_count = 1
+
+        while rows_count > on_page * page:
+            page += 1
+            data = dict(
+                on_page=on_page,
+                page=page,
+                filters=[
+                    {
+                        "s": "tran_time",
+                        "m": "from",
+                        "v": str(start_time),
+                    }
+                ],
+                merchant_id=merchant_id,
+                report_id=403,
+            )
+
+            async with session.post(url, headers=headers, json=data) as r:
+                r.raise_for_status()
+                response = await r.json(content_type=None)
+
+            keys = response["fields"]
+            values_list = response["data"]
+            result += [
+                {k: v for k, v in zip(keys, values)} for values in values_list
+            ]
+            rows_count = response["rows_count"]
+
         return result
 
 
