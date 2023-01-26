@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import re
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path
@@ -14,8 +14,10 @@ from checkbox451_bot import __product__
 from checkbox451_bot.bot import Bot
 from checkbox451_bot.config import Config
 from checkbox451_bot.gsheet.common import (
+    Logger,
     TransactionBase,
     TransactionProcessorBase,
+    TransactionTypeBase,
 )
 
 log = logging.getLogger(__name__)
@@ -33,13 +35,8 @@ def accounts():
     ]
 
 
-class TranType(str, Enum):
+class TranType(TransactionTypeBase, Enum):
     CREDIT = "C"
-    _ = "(ignored)"
-
-    @classmethod
-    def _missing_(cls, _):
-        return TranType._
 
 
 class Privat24Transaction(TransactionBase):
@@ -87,6 +84,20 @@ class Privat24TransactionProcessor(TransactionProcessorBase):
         self.api_id = Config().get("privat24", "api", "id")
         self.api_token = Config().get("privat24", "api", "token")
 
+    def pre_run_hook(self):
+        old_file = Path("transactions.json")
+        if old_file.exists() and not self.transactions_file.exists():
+            old_file.rename(self.transactions_file)
+
+        if not self.api_id or not self.api_token:
+            log.warning("missing privat24 api credentials; ignoring...")
+            return False
+
+        privat24_polling_interval = self.polling_interval
+        self.logger.info(f"{privat24_polling_interval=}")
+
+        return True
+
     async def get_transactions(self, *, session) -> List[Dict[str, Any]]:
         transactions = []
 
@@ -116,31 +127,6 @@ class Privat24TransactionProcessor(TransactionProcessorBase):
                 next_page_id = result["next_page_id"]
 
         return transactions
-
-    def pre_run_hook(self):
-        old_file = Path("transactions.json")
-        if old_file.exists() and not self.transactions_file.exists():
-            old_file.rename(self.transactions_file)
-
-        if not self.api_id or not self.api_token:
-            log.warning("missing privat24 api credentials; ignoring...")
-            return False
-
-        privat24_polling_interval = self.polling_interval
-        self.logger.info(f"{privat24_polling_interval=}")
-
-        return True
-
-
-class Logger:
-    @staticmethod
-    def log_msg(msg):
-        if isinstance(msg, Exception):
-            msg = repr(msg)
-        now = datetime.now().replace(microsecond=0)
-        print(f"{now}: {msg}")
-
-    debug = error = exception = info = log_msg
 
 
 async def main():

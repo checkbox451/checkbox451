@@ -15,6 +15,14 @@ from checkbox451_bot.gsheet import gsheet
 from checkbox451_bot.handlers import helpers
 
 
+class TransactionTypeBase:
+    _ = "(ignored)"
+
+    @classmethod
+    def _missing_(cls, _):
+        return cls._
+
+
 class TransactionBase(BaseModel):
     _orig: dict = None
     ts: datetime
@@ -220,3 +228,14 @@ class TransactionProcessorBase(ABC):
             except Exception as err:
                 self.logger.exception(err)
             await asyncio.sleep(60 * self.polling_interval)
+
+
+class Logger:
+    @staticmethod
+    def log_msg(msg):
+        if isinstance(msg, Exception):
+            msg = repr(msg)
+        now = datetime.now().replace(microsecond=0)
+        print(f"{now}: {msg}")
+
+    debug = error = exception = info = log_msg

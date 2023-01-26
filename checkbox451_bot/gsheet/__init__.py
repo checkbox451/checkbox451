@@ -1,1 +1,1 @@
-from . import privat24
+from . import fondy, privat24

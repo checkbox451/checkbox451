@@ -33,3 +33,11 @@ privat24:
     - "<accounts to watch, all if empty>"
   polling_interval: 15
   good_name_default: "<default good name for cashless receipts>"
+
+# Invoices and online payments
+fondy:
+  auth:
+    id: <Fondy company ID>
+    secret_key: "<Fondy secret key>"
+  merchant_id: <Fondy merchant ID>
+  polling_interval: 15
