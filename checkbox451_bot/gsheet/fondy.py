@@ -122,7 +122,7 @@ class FondyTransaction(TransactionBase):
         values["ts"] = dateutil.parser.parse(values["tran_time"])
         values["code"] = values["name"] = values["order_id"]
         values["sum"] = values["actual_amount"]
-        values["sender"] = values["sender_email"]
+        values["sender"] = values["sender_email"] or ""
         return values
 
     def check(self):
