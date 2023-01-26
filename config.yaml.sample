@@ -1,7 +1,6 @@
 checkbox:
   pin: "<cashier pin>"
   license: "<cash register license key>"
-  api_url: ""
   shift_close_time: "<time to close a shift>"
 
 telegram_bot:

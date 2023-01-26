@@ -1,6 +1,6 @@
 import asyncio
 import posixpath
-from functools import lru_cache, wraps
+from functools import wraps
 from json import JSONDecodeError
 from logging import getLogger
 from typing import Type
@@ -18,6 +18,8 @@ from checkbox451_bot.config import Config
 
 log = getLogger(__name__)
 
+api_url = "https://api.checkbox.ua/"
+
 
 def aiohttp_session(func):
     @wraps(func)
@@ -32,7 +34,7 @@ def aiohttp_session(func):
 
 
 def endpoint(path: str):
-    return posixpath.join(api_url(), "api/v1", path.lstrip("/"))
+    return posixpath.join(api_url, "api/v1", path.lstrip("/"))
 
 
 def headers(*, auth=True, lic=False):
@@ -171,12 +173,3 @@ def require_sign(func):
         raise CheckboxSignError("Підпис недоступний")
 
     return wrapper
-
-
-@lru_cache(maxsize=1)
-def api_url():
-    api_url = "https://api.checkbox.ua/"
-    api_url = Config().get("checkbox", "api_url", default=api_url)
-
-    log.info(f"{api_url=}")
-    return api_url
