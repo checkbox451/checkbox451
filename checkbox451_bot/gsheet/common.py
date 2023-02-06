@@ -15,14 +15,6 @@ from checkbox451_bot.gsheet import gsheet
 from checkbox451_bot.handlers import helpers
 
 
-class TransactionTypeBase:
-    _ = "(ignored)"
-
-    @classmethod
-    def _missing_(cls, _):
-        return cls._
-
-
 class TransactionBase(BaseModel):
     _orig: dict = None
     ts: datetime

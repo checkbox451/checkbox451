@@ -19,7 +19,6 @@ from checkbox451_bot.gsheet.common import (
     Logger,
     TransactionBase,
     TransactionProcessorBase,
-    TransactionTypeBase,
 )
 
 log = logging.getLogger(__name__)
@@ -110,8 +109,13 @@ class FondyAPI:
         return result
 
 
-class OrderStatus(TransactionTypeBase, Enum):
+class OrderStatus(str, Enum):
     APPROVED = "approved"
+    _ = "(ignored)"
+
+    @classmethod
+    def _missing_(cls, _):
+        return cls._
 
 
 class FondyTransaction(TransactionBase):

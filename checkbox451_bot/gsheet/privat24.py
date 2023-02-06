@@ -17,7 +17,6 @@ from checkbox451_bot.gsheet.common import (
     Logger,
     TransactionBase,
     TransactionProcessorBase,
-    TransactionTypeBase,
 )
 
 log = logging.getLogger(__name__)
@@ -35,8 +34,13 @@ def accounts():
     ]
 
 
-class TranType(TransactionTypeBase, Enum):
+class TranType(str, Enum):
     CREDIT = "C"
+    _ = "(ignored)"
+
+    @classmethod
+    def _missing_(cls, _):
+        return TranType._
 
 
 class Privat24Transaction(TransactionBase):
