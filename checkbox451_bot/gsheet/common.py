@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List
 
+import dateutil.parser
 from pydantic import BaseModel
 
 from checkbox451_bot import auth, checkbox_api
@@ -214,11 +215,22 @@ class TransactionProcessorBase(ABC):
 
         prev = await self.read_transactions(session=session)
 
+        shift_close_time = Config().get("checkbox", "shift_close_time")
+        shift_check = (
+            lambda: dateutil.parser.parse(shift_close_time) > datetime.now()
+            if shift_close_time
+            else lambda: True
+        )
+
         while True:
-            try:
-                prev = await self.process_transactions(prev, session=session)
-            except Exception as err:
-                self.logger.exception(err)
+            if shift_check():
+                try:
+                    prev = await self.process_transactions(
+                        prev, session=session
+                    )
+                except Exception as err:
+                    self.logger.exception(err)
+
             await asyncio.sleep(60 * self.polling_interval)
 
 

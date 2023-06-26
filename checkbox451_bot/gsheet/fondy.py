@@ -6,11 +6,11 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List
 
+import dateutil.parser
 from aiohttp import ClientSession
 from asyncache import cached
 from cachetools import TTLCache
 from pydantic import root_validator
-from sqlalchemy_utils.types.encrypted.encrypted_type import dateutil
 
 from checkbox451_bot import __product__
 from checkbox451_bot.bot import Bot
