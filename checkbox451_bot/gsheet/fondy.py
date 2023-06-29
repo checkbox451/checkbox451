@@ -86,13 +86,13 @@ class FondyAPI:
                 page=page,
                 filters=[
                     {
-                        "s": "tran_time",
+                        "s": "order_timestart",
                         "m": "from",
                         "v": str(start_time),
                     }
                 ],
                 merchant_id=merchant_id,
-                report_id=403,
+                report_id=745,
             )
 
             async with session.post(url, headers=headers, json=data) as r:
@@ -123,7 +123,7 @@ class FondyTransaction(TransactionBase):
 
     @root_validator(pre=True)
     def values(cls, values):
-        values["ts"] = dateutil.parser.parse(values["tran_time"])
+        values["ts"] = dateutil.parser.parse(values["order_timestart"])
         values["code"] = values["name"] = values["order_id"]
         values["sum"] = values["actual_amount"]
         values["sender"] = values["sender_email"] or ""
