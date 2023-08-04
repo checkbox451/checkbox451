@@ -39,15 +39,15 @@ async def open_shift(*, session):
         except JSONDecodeError:
             pass
         else:
-            if shift is None:
-                log.warning("shift is missing: %s", opened_shift)
-                break
-            elif shift["status"] == "OPENED":
+            if shift and shift["status"] == "OPENED":
                 shift_id = shift["id"]
                 log.info("shift: %s", shift_id)
                 return shift_id
 
         await asyncio.sleep(1)
+
+    if shift is None:
+        log.warning("shift is missing: %s", opened_shift)
 
     log.error("shift error: %s", shift)
     raise CheckboxShiftError("Не вдалось підписати зміну")
