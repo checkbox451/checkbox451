@@ -6,10 +6,11 @@ from typing import Any
 
 import schedule
 
-from checkbox451_bot import auth, checkbox_api, gsheet
+from checkbox451_bot import auth, checkbox_api
 from checkbox451_bot.bot import Bot
 from checkbox451_bot.checkbox_api.helpers import aiohttp_session
 from checkbox451_bot.config import Config
+from checkbox451_bot.gsheet import gsheet
 from checkbox451_bot.handlers import helpers
 
 log = logging.getLogger(__name__)
