@@ -109,7 +109,7 @@ async def shift_close(*, session):
     )
 
     shift_id = shift["id"]
-    balance = shift["balance"]["service_out"] / 100
+    cash_profit = shift["balance"]["service_out"] / 100
 
     for _ in range(60):
         try:
@@ -122,7 +122,7 @@ async def shift_close(*, session):
             if shift is None:
                 log.info("shift closed: %s", shift_id)
                 sign_out()
-                return balance
+                return cash_profit
 
         await asyncio.sleep(1)
 

@@ -105,11 +105,11 @@ def init(dispatcher):
     @aiohttp_session
     async def close(message: Message, *, session):
         my_shift = await shift.current_shift(session=session)
-        income = await shift_close(
+        cash_profit = await shift_close(
             chat_id=message.chat.id,
             session=session,
         )
-        if income is None:
+        if cash_profit is None:
             await message.answer("🙌 Зміну вже закрито")
         else:
             await message.answer("👌 Зміну закрито")

@@ -41,19 +41,19 @@ async def shift_close(*, logger: Any = log, chat_id=None, session):
         return
 
     try:
-        income = await checkbox_api.shift.shift_close(session=session)
+        cash_profit = await checkbox_api.shift.shift_close(session=session)
     except Exception as e:
         await error(str(e))
         logger.error(f"shift close failed: {e!s}")
         return
 
     today = date.today().isoformat()
-    logger.info(f"{today}: shift closed: income {income:.02f}")
+    logger.info(f"{today}: shift closed: cash profit {cash_profit:.02f}")
 
-    if income:
+    if cash_profit:
         worksheet_title = Config().get("google", "worksheet", "title")
         try:
-            await gsheet.append_row([today, income], worksheet_title)
+            await gsheet.append_row([today, cash_profit], worksheet_title)
         except Exception as e:
             await error(str(e))
             logger.error(f"shift reporting failed: {e!s}")
@@ -66,7 +66,7 @@ async def shift_close(*, logger: Any = log, chat_id=None, session):
     )
     await helpers.send_report(answer, shift)
 
-    return income
+    return cash_profit
 
 
 async def scheduler():
