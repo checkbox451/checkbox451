@@ -150,3 +150,5 @@ async def send_report(answer, shift):
     if cash_report and card_report:
         total = cash_sales - cash_returns + card_sales - card_returns
         await answer(f"💰 Всього: {total / 100:.2f} грн")
+    elif not (card_report or card_report):
+        await answer(r"👛 Виторгу нема ¯\_(ツ)_/¯")
