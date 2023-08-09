@@ -1,5 +1,8 @@
 import asyncio
+import time
 from logging import getLogger
+
+from requests import RequestException
 
 log = getLogger(__name__)
 
@@ -17,7 +20,15 @@ def main():
         shift_close,
     )
 
-    goods.items()
+    while True:
+        try:
+            goods.items()
+        except RequestException as e:
+            log.error(e)
+            time.sleep(60)
+            continue
+        break
+
     checkbox_api.receipt.receipt_params()
 
     loop = asyncio.get_event_loop()
