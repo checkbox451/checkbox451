@@ -1,5 +1,6 @@
 aiogram==2.25.1
 aiohttp==3.8.4
+aiohttp_retry==2.8.3
 asyncache==0.3.1
 cachetools==5.3.1
 google-auth-oauthlib==1.0.0

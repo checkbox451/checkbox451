@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import dateutil.parser
-from aiohttp import ClientSession
+from aiohttp_retry import RetryClient
 from asyncache import cached
 from cachetools import TTLCache
 from pydantic import root_validator
@@ -47,7 +47,7 @@ class FondyAPI:
         return hashlib.sha512(sig.encode()).hexdigest()
 
     @cached(TTLCache(1, 3600))
-    async def token(self, *, session: ClientSession):
+    async def token(self, *, client: RetryClient):
         url = "https://wallet.fondy.eu/authorizer/token/application/get"
         headers = self._headers()
 
@@ -58,16 +58,16 @@ class FondyAPI:
             signature=self._signature(sig_date),
         )
 
-        async with session.post(url, headers=headers, json=data) as r:
+        async with client.post(url, headers=headers, json=data) as r:
             r.raise_for_status()
             response = await r.json()
 
         return response["token"]
 
-    async def report(self, merchant_id, *, session: ClientSession):
+    async def report(self, merchant_id, *, client: RetryClient):
         url = "https://portal.fondy.eu/api/extend/company/report/"
 
-        token = await self.token(session=session)
+        token = await self.token(client=client)
         headers = self._headers({"Authorization": f"Token {token}"})
 
         start_date = date.today() - timedelta(days=7)
@@ -95,7 +95,7 @@ class FondyAPI:
                 report_id=745,
             )
 
-            async with session.post(url, headers=headers, json=data) as r:
+            async with client.post(url, headers=headers, json=data) as r:
                 r.raise_for_status()
                 response = await r.json(content_type=None)
 
@@ -164,7 +164,8 @@ class FondyTransactionProcessor(TransactionProcessorBase):
         return True
 
     async def get_transactions(self, *, session) -> List[Dict[str, Any]]:
-        return await self.api.report(self.merchant_id, session=session)
+        retry_client = RetryClient(client_session=session)
+        return await self.api.report(self.merchant_id, client=retry_client)
 
 
 async def main():
