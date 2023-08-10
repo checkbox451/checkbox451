@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import dateutil.parser
-from aiohttp_retry import RetryClient
+from aiohttp import ClientConnectorError
+from aiohttp_retry import ExponentialRetry, RetryClient
 from asyncache import cached
 from cachetools import TTLCache
 from pydantic import root_validator
@@ -164,7 +165,8 @@ class FondyTransactionProcessor(TransactionProcessorBase):
         return True
 
     async def get_transactions(self, *, session) -> List[Dict[str, Any]]:
-        retry_client = RetryClient(client_session=session)
+        retry_options = ExponentialRetry(exceptions={ClientConnectorError})
+        retry_client = RetryClient(session, retry_options=retry_options)
         return await self.api.report(self.merchant_id, client=retry_client)
 
 
