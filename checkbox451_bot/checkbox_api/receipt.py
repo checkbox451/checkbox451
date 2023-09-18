@@ -57,7 +57,7 @@ async def wait_receipt_sign(receipt_id, *, session):
         except JSONDecodeError:
             pass
         else:
-            if receipt["status"] == "DONE":
+            if receipt["status"] in {"DONE", "SIGNED"}:
                 return receipt["tax_url"]
 
         await asyncio.sleep(1)
