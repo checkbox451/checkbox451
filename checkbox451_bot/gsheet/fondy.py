@@ -121,10 +121,6 @@ class OrderStatus(str, Enum):
 
 class FondyTransaction(TransactionBase):
     order_status: OrderStatus
-    fee: str
-    settlement_amount: str
-    settlement_currency: str
-    settlement_date: str
 
     @root_validator(pre=True)
     def values(cls, values):
@@ -135,14 +131,7 @@ class FondyTransaction(TransactionBase):
         return values
 
     def check(self):
-        return self.order_status == OrderStatus.APPROVED and not any(
-            [
-                self.fee,
-                self.settlement_amount,
-                self.settlement_currency,
-                self.settlement_date,
-            ]
-        )
+        return self.order_status == OrderStatus.APPROVED
 
 
 class FondyTransactionProcessor(TransactionProcessorBase):
