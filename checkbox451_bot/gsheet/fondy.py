@@ -122,6 +122,21 @@ class OrderStatus(str, Enum):
 class FondyTransaction(TransactionBase):
     order_status: OrderStatus
 
+    def __hash__(self):
+        return hash(
+            frozenset(
+                (k, v)
+                for k, v in self._orig.items()
+                if k
+                not in {
+                    "fee",
+                    "settlement_amount",
+                    "settlement_currency",
+                    "settlement_date",
+                }
+            )
+        )
+
     @root_validator(pre=True)
     def values(cls, values):
         values["ts"] = dateutil.parser.parse(values["order_timestart"])

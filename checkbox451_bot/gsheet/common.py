@@ -31,6 +31,9 @@ class TransactionBase(BaseModel):
         super().__init__(**data)
         self._orig = data
 
+    def __hash__(self):
+        return hash(frozenset(self._orig.items()))
+
     def __lt__(self, other: "TransactionBase"):
         return self.ts < other.ts
 
@@ -158,12 +161,10 @@ class TransactionProcessorBase(ABC):
 
     @classmethod
     def new_transaction(cls, prev, curr):
-        prev_set = {frozenset(t.items()) for t in prev}
-        curr_set = {frozenset(t.items()) for t in curr}
+        prev_set = {cls.transaction_cls.parse_obj(t) for t in prev}
+        curr_set = {cls.transaction_cls.parse_obj(t) for t in curr}
 
-        return sorted(
-            cls.transaction_cls.parse_obj(i) for i in curr_set - prev_set
-        )
+        return sorted(curr_set - prev_set)
 
     async def process_transactions(self, prev, *, session):
         try:
