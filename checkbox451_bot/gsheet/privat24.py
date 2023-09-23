@@ -44,6 +44,8 @@ class TranType(str, Enum):
 
 
 class Privat24Transaction(TransactionBase):
+    _hash_key = "TECHNICAL_TRANSACTION_ID"
+
     aut_my_acc: str
     trantype: TranType
 

@@ -17,7 +17,9 @@ from checkbox451_bot.handlers import helpers
 
 
 class TransactionBase(BaseModel):
+    _hash_key: str
     _orig: dict = None
+
     ts: datetime
     code: str
     name: str
@@ -32,7 +34,7 @@ class TransactionBase(BaseModel):
         self._orig = data
 
     def __hash__(self):
-        return hash(frozenset(self._orig.items()))
+        return hash(self._orig[self._hash_key])
 
     def __lt__(self, other: "TransactionBase"):
         return self.ts < other.ts

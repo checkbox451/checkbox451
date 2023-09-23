@@ -120,22 +120,9 @@ class OrderStatus(str, Enum):
 
 
 class FondyTransaction(TransactionBase):
-    order_status: OrderStatus
+    _hash_key = "payment_id"
 
-    def __hash__(self):
-        return hash(
-            frozenset(
-                (k, v)
-                for k, v in self._orig.items()
-                if k
-                not in {
-                    "fee",
-                    "settlement_amount",
-                    "settlement_currency",
-                    "settlement_date",
-                }
-            )
-        )
+    order_status: OrderStatus
 
     @root_validator(pre=True)
     def values(cls, values):
