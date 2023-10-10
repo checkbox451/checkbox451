@@ -1,3 +1,5 @@
+receipt_as_image: false
+
 checkbox:
   pin: "<cashier pin>"
   license: "<cash register license key>"

@@ -103,11 +103,11 @@ def init(dispatcher):
             receipt_id,
             session=session,
         )
-        receipt_qr, receipt_url, receipt_text = receipt_data
+        receipt_image, receipt_url, receipt_text = receipt_data
         await helpers.send_receipt(
             user_id,
             receipt_id,
-            receipt_qr,
+            receipt_image,
             receipt_url,
             receipt_text,
         )

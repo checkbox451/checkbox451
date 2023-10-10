@@ -136,7 +136,7 @@ class TransactionProcessorBase(ABC):
                 session=session,
             )
             (
-                receipt_qr,
+                receipt_image,
                 receipt_text,
             ) = await checkbox_api.receipt.get_receipt_extra(
                 receipt_id,
@@ -156,7 +156,7 @@ class TransactionProcessorBase(ABC):
             auth.SUPERVISOR,
             helpers.send_receipt,
             receipt_id,
-            receipt_qr,
+            receipt_image,
             receipt_url,
             receipt_text,
         )

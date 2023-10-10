@@ -29,7 +29,7 @@ def main():
             continue
         break
 
-    checkbox_api.receipt.receipt_params()
+    checkbox_api.receipt.get_receipt_params()
 
     loop = asyncio.get_event_loop()
     loop.create_task(gsheet.privat24.Privat24TransactionProcessor().run())

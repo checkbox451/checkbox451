@@ -66,6 +66,17 @@ async def wait_receipt_sign(receipt_id, *, session):
     raise CheckboxReceiptError("Не вдалось підписати чек")
 
 
+async def get_receipt_png(receipt_id, *, session):
+    png = await get_retry(
+        f"/receipts/{receipt_id}/png",
+        session=session,
+        loader="read",
+        exc=CheckboxReceiptError,
+    )
+
+    return png
+
+
 async def get_receipt_qrcode(receipt_id, *, session):
     qrcode = await get_retry(
         f"/receipts/{receipt_id}/qrcode",
@@ -83,7 +94,7 @@ async def get_receipt_text(receipt_id, *, session):
         session=session,
         loader="text",
         exc=CheckboxReceiptError,
-        **receipt_params(),
+        **get_receipt_params(),
     )
 
     return receipt_text
@@ -91,10 +102,14 @@ async def get_receipt_text(receipt_id, *, session):
 
 @aiohttp_session
 async def get_receipt_extra(receipt_id, *, session):
-    receipt_qr = await get_receipt_qrcode(receipt_id, session=session)
-    receipt_text = await get_receipt_text(receipt_id, session=session)
+    if Config().get("receipt_as_image"):
+        receipt_image = await get_receipt_png(receipt_id, session=session)
+        receipt_text = None
+    else:
+        receipt_image = await get_receipt_qrcode(receipt_id, session=session)
+        receipt_text = await get_receipt_text(receipt_id, session=session)
 
-    return receipt_qr, receipt_text
+    return receipt_image, receipt_text
 
 
 @aiohttp_session
@@ -119,10 +134,11 @@ async def get_receipt_data(receipt_id, *, session):
     receipt_url = await get_retry(
         f"/receipts/{receipt_id}", session=session, exc=CheckboxReceiptError
     )
-    receipt_qr = await get_receipt_qrcode(receipt_id, session=session)
-    receipt_text = await get_receipt_text(receipt_id, session=session)
+    receipt_image, receipt_text = await get_receipt_extra(
+        receipt_id, session=session
+    )
 
-    return receipt_qr, receipt_url, receipt_text
+    return receipt_image, receipt_url, receipt_text
 
 
 @aiohttp_session
@@ -138,7 +154,7 @@ async def search_receipt(fiscal_code, *, session):
 
 
 @lru_cache(maxsize=1)
-def receipt_params():
+def get_receipt_params():
     receipt_params = {}
     if print_width := Config().get("print", "width"):
         receipt_params["width"] = print_width

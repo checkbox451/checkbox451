@@ -46,23 +46,24 @@ async def broadcast(user_id, role_name, send_message, *args, **kwargs):
 async def send_receipt(
     user_id,
     receipt_id,
-    receipt_qr,
+    receipt_image,
     receipt_url,
     receipt_text,
 ):
-    keyboard = InlineKeyboardMarkup().add(
-        InlineKeyboardButton(
-            "📄 Друкувати",
-            callback_data=f"print:{receipt_id}",
-        )
-    )
+    await Bot().send_photo(user_id, BytesIO(receipt_image), receipt_url)
 
-    await Bot().send_photo(user_id, BytesIO(receipt_qr), caption=receipt_url)
-    await Bot().send_message(
-        user_id,
-        f"<pre>{receipt_text}</pre>",
-        reply_markup=keyboard,
-    )
+    if receipt_text:
+        keyboard = InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                "📄 Друкувати",
+                callback_data=f"print:{receipt_id}",
+            )
+        )
+        await Bot().send_message(
+            user_id,
+            f"<pre>{receipt_text}</pre>",
+            reply_markup=keyboard,
+        )
 
 
 async def error(user_id, exception):

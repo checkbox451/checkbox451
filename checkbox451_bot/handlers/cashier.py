@@ -40,7 +40,7 @@ def init(dispatcher):
                 receipt_id,
                 session=session,
             )
-            receipt_qr, receipt_text = await receipt.get_receipt_extra(
+            receipt_image, receipt_text = await receipt.get_receipt_extra(
                 receipt_id,
                 session=session,
             )
@@ -54,7 +54,7 @@ def init(dispatcher):
         await helpers.send_receipt(
             message.chat.id,
             receipt_id,
-            receipt_qr,
+            receipt_image,
             receipt_url,
             receipt_text,
         )
@@ -66,7 +66,7 @@ def init(dispatcher):
             auth.SUPERVISOR,
             helpers.send_receipt,
             receipt_id,
-            receipt_qr,
+            receipt_image,
             receipt_url,
             receipt_text,
         )
