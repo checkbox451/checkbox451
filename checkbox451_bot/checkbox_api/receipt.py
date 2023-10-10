@@ -131,9 +131,10 @@ async def sell(goods, cashless=False, *, session):
 
 @aiohttp_session
 async def get_receipt_data(receipt_id, *, session):
-    receipt_url = await get_retry(
+    receipt = await get_retry(
         f"/receipts/{receipt_id}", session=session, exc=CheckboxReceiptError
     )
+    receipt_url = receipt.get("tax_url")
     receipt_image, receipt_text = await get_receipt_extra(
         receipt_id, session=session
     )
