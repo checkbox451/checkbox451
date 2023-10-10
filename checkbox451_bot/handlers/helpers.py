@@ -50,7 +50,8 @@ async def send_receipt(
     receipt_url,
     receipt_text,
 ):
-    await Bot().send_photo(user_id, BytesIO(receipt_image), receipt_url)
+    await Bot().send_photo(user_id, BytesIO(receipt_image))
+    await Bot().send_message(user_id, receipt_url)
 
     if receipt_text:
         keyboard = InlineKeyboardMarkup().add(
