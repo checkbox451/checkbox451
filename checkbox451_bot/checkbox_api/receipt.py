@@ -146,7 +146,10 @@ async def get_receipt_data(receipt_id, *, session):
 async def search_receipt(fiscal_code, *, session):
     results = (
         await get_retry(
-            "/receipts/search", session=session, fiscal_code=fiscal_code
+            "/receipts/search",
+            session=session,
+            fiscal_code=fiscal_code,
+            from_date="20010101",
         )
     )["results"]
 
