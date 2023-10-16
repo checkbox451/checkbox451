@@ -2,13 +2,14 @@ import asyncio
 import json
 from abc import ABC, abstractmethod
 from datetime import datetime
+from operator import itemgetter
 from pathlib import Path
 from typing import Any, Dict, List
 
 import dateutil.parser
 from pydantic import BaseModel
 
-from checkbox451_bot import auth, checkbox_api
+from checkbox451_bot import auth, checkbox_api, goods
 from checkbox451_bot.bot import Bot
 from checkbox451_bot.checkbox_api.helpers import aiohttp_session
 from checkbox451_bot.config import Config
@@ -102,22 +103,39 @@ class TransactionProcessorBase(ABC):
 
     @staticmethod
     def transaction_to_goods(transaction: TransactionBase):
-        if name := transaction.name:
-            return [
-                {
-                    "code": transaction.code,
-                    "name": name,
-                    "price": float(transaction.sum) * 100,
-                    "quantity": 1000,
-                }
-            ]
+        code = transaction.code
+        name = transaction.name
+        price = float(transaction.sum) * 100
+        quantity = 1000
+
+        goods_items = goods.get_items()
+        if goods_items:
+            for good in reversed(
+                sorted(goods_items.values(), key=itemgetter("price"))
+            ):
+                quotient, reminder = divmod(price, good_price := good["price"])
+                if reminder == 0:
+                    code = good["code"]
+                    name = good["name"]
+                    price = good_price
+                    quantity *= quotient
+                    break
+
+        return [
+            {
+                "code": code,
+                "name": name,
+                "price": price,
+                "quantity": quantity,
+            }
+        ]
 
     @classmethod
     async def create_receipt(cls, transaction, *, session):
-        if goods := cls.transaction_to_goods(transaction):
+        if goods_ := cls.transaction_to_goods(transaction):
             try:
                 receipt_id = await checkbox_api.receipt.sell(
-                    goods, cashless=True, session=session
+                    goods_, cashless=True, session=session
                 )
             except Exception as e:
                 await helpers.broadcast(

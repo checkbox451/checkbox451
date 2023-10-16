@@ -7,7 +7,7 @@ log = getLogger(__name__)
 
 
 @lru_cache(maxsize=1)
-def items():
+def get_items():
     items = {
         f"{good['name'].strip()} {good['price']/100:.2f} грн": {
             "code": good["code"],

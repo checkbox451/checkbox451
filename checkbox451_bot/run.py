@@ -22,7 +22,7 @@ def main():
 
     while True:
         try:
-            goods.items()
+            goods.get_items()
         except RequestException as e:
             log.error(e)
             time.sleep(60)

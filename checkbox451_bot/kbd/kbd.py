@@ -6,7 +6,7 @@ from aiogram.types import (
     ReplyKeyboardRemove,
 )
 
-from checkbox451_bot.goods import items
+from checkbox451_bot.goods import get_items
 from checkbox451_bot.kbd.buttons import btn_auth, btn_cancel, btn_receipt
 
 remove = ReplyKeyboardRemove()
@@ -21,4 +21,4 @@ start = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1).add(btn_receipt)
 def goods():
     return ReplyKeyboardMarkup(
         resize_keyboard=True, one_time_keyboard=True, row_width=1
-    ).add(*items(), btn_cancel)
+    ).add(*get_items(), btn_cancel)
