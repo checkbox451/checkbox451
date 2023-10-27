@@ -190,7 +190,7 @@ class TransactionProcessorBase(ABC):
         try:
             curr = await self.get_transactions(session=session)
         except Exception as err:
-            self.logger.error(err)
+            self.logger.exception(err)
             return prev
 
         if transactions := self.new_transaction(prev, curr):
