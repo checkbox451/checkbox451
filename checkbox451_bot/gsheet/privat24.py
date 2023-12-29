@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 
 URL = "https://acp.privatbank.ua/api/statements/transactions"
 sender_pat = re.compile(
-    r"^.+(?:,\s*|Переказ\s+вiд\s+|Вiд\s+)(\S+\s+\S+(?:\s+\S+)?)\s*$"
+    r"^.+(?:,\s*|Переказ(?:и:)?\s+вiд\s+|Вiд\s+)(\S+\s+\S+(?:\s+\S+)?)\s*$"
 )
 
 
