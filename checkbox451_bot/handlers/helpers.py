@@ -64,7 +64,7 @@ async def send_receipt(
         )
         await Bot().send_message(
             user_id,
-            f"<pre>{receipt_text}</pre>",
+            f"<code>{receipt_text}</code>",
             reply_markup=keyboard,
         )
 
@@ -126,11 +126,11 @@ def prepare_report(sales, returns, header, header_no_returns):
     if sales:
         if returns:
             return (
-                f"{header}:\n<pre>"
+                f"{header}:\n<code>"
                 f"Одержано: {sales:>10.2f} грн\n"
                 f"Повернуто:{returns:>10.2f} грн\n"
                 f"Виручка:  {proceeds:>10.2f} грн"
-                "</pre>"
+                "</code>"
             )
         return f"{header_no_returns}: {proceeds:.2f} грн"
 
