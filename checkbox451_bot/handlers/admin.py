@@ -83,9 +83,9 @@ def init(dispatcher):
         if len(args) == 2:
             recipient = args[1]
             if recipient.startswith("+"):
-                session = db.Session()
+                db_session = db.Session()
                 if (
-                    user := session.query(db.User)
+                    user := db_session.query(db.User)
                     .filter(db.User.phone_number == recipient)
                     .scalar()
                 ):
