@@ -92,6 +92,8 @@ class Privat24TransactionProcessor(TransactionProcessorBase):
         self.api_token = Config().get("privat24", "api", "token")
 
     def pre_run_hook(self):
+        super().pre_run_hook()
+
         old_file = Path("transactions.json")
         if old_file.exists() and not self.transactions_file.exists():
             old_file.rename(self.transactions_file)

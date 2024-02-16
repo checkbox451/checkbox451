@@ -188,16 +188,21 @@ class TransactionProcessorBase(ABC):
             receipt_text,
         )
 
+    @staticmethod
+    def get_or_create_db(tr, *, session: Session, **kwargs):
+        if not (tr_db := session.query(Transaction).get((tr.type, tr.id))):
+            tr_db = Transaction(type=tr.type, id=tr.id, ts=tr.ts, **kwargs)
+            session.add(tr_db)
+            session.commit()
+        return tr_db
+
     @classmethod
     def parse_transaction(cls, curr, *, session):
         transactions = []
-        for t in (cls.transaction_cls.parse_obj(c) for c in curr):
-            if not (t_db := session.query(Transaction).get((t.type, t.id))):
-                t_db = Transaction(type=t.type, id=t.id, ts=t.ts)
-                session.add(t_db)
-                session.commit()
-            t.set_db(t_db)
-            transactions.append(t)
+        for tr in (cls.transaction_cls.parse_obj(c) for c in curr):
+            tr_db = cls.get_or_create_db(tr, session=session)
+            tr.set_db(tr_db)
+            transactions.append(tr)
 
         return sorted(transactions)
 
@@ -265,6 +270,21 @@ class TransactionProcessorBase(ABC):
                 self.logger.debug("no new transactions")
 
     def pre_run_hook(self):
+        transactions = [
+            self.transaction_cls.parse_obj(t)
+            for t in json.loads(self.transactions_file.read_text())
+        ]
+        if transactions:
+            with Session() as session:
+                for tr in transactions:
+                    self.get_or_create_db(
+                        tr,
+                        notify=True,
+                        receipt=True,
+                        income=True,
+                        session=session,
+                    )
+
         return True
 
     async def run(self):

@@ -152,6 +152,8 @@ class FondyTransactionProcessor(TransactionProcessorBase):
         self.merchant_id = Config().get("fondy", "merchant_id")
 
     def pre_run_hook(self):
+        super().pre_run_hook()
+
         if not self.company_id or not self.secret_key:
             log.warning("missing fondy auth credentials; ignoring...")
             return False
