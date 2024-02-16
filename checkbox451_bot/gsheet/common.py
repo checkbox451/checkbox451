@@ -226,13 +226,20 @@ class TransactionProcessorBase(ABC):
                 current, session=session
             ):
                 for tr in transactions:
-                    if tr.check_receipt() and not tr.db.receipt:
+                    log = tr.db.notify
+
+                    if not tr.db.notify:
                         self.logger.info(tr.orig)
 
                         try:
                             await self.bot_notify(tr)
                         except Exception as err:
                             self.logger.exception(err)
+                        else:
+                            self.update_db(tr, notify=True, session=session)
+
+                    if tr.check_receipt() and not tr.db.receipt:
+                        self.logger.info(tr.orig)
 
                         try:
                             await self.create_receipt(tr)
@@ -242,6 +249,9 @@ class TransactionProcessorBase(ABC):
                             self.update_db(tr, receipt=True, session=session)
 
                     if tr.check_income() and not tr.db.income:
+                        if log:
+                            self.logger.info(tr.orig)
+
                         try:
                             await self.store_transaction(tr)
                         except Exception as err:

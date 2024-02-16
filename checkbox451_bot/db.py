@@ -74,6 +74,7 @@ class Transaction(Base):
     type = Column(String(16), primary_key=True)
     id = Column(String(20), primary_key=True)
     ts = Column(DateTime)
+    notify = Column(Boolean, server_default=false())
     receipt = Column(Boolean, server_default=false())
     income = Column(Boolean, server_default=false())
 
