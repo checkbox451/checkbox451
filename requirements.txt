@@ -8,7 +8,7 @@ gspread-asyncio==1.9.0
 phonenumbers==8.13.22
 pydantic==1.10.12
 python-dateutil==2.8.2
-python-escpos==3.0a9
+python-escpos==3.1
 requests==2.31.0
 schedule==1.2.1
 sqlalchemy==2.0.21
