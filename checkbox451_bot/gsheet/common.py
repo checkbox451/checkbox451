@@ -20,7 +20,7 @@ from checkbox451_bot.handlers import helpers
 
 
 class TransactionBase(BaseModel):
-    id_key: str
+    _id_key: str = ""
     _orig: dict
     _id: str
     _type: str
@@ -38,7 +38,7 @@ class TransactionBase(BaseModel):
     def __init__(self, **data):
         super().__init__(**data)
         self._orig = data
-        self._id = str(self._orig[self.id_key])
+        self._id = str(self._orig.get(self._id_key, ""))
         self._type = type(self).__name__.removesuffix("Transaction").lower()
 
     def __lt__(self, other: "TransactionBase"):

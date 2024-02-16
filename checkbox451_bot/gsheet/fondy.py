@@ -120,7 +120,7 @@ class OrderStatus(str, Enum):
 
 
 class FondyTransaction(TransactionBase):
-    id_key = "payment_id"
+    _id_key = "payment_id"
 
     order_status: OrderStatus
 
