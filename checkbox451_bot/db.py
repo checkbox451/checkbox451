@@ -1,17 +1,24 @@
 from logging import getLogger
+from typing import TYPE_CHECKING
 
 from aiogram.types import Contact
 from sqlalchemy import (
+    Boolean,
     Column,
+    DateTime,
     ForeignKey,
     Integer,
     String,
     Table,
     create_engine,
+    false,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, scoped_session, sessionmaker
 from sqlalchemy_utils import PhoneNumberType
+
+if TYPE_CHECKING:
+    pass
 
 log = getLogger(__name__)
 
@@ -59,6 +66,16 @@ class Role(Base):
 
     def __repr__(self):
         return self.name
+
+
+class Transaction(Base):
+    __tablename__ = "transactions"
+
+    type = Column(String(16), primary_key=True)
+    id = Column(String(20), primary_key=True)
+    ts = Column(DateTime)
+    receipt = Column(Boolean, server_default=false())
+    income = Column(Boolean, server_default=false())
 
 
 def init():

@@ -120,7 +120,7 @@ class OrderStatus(str, Enum):
 
 
 class FondyTransaction(TransactionBase):
-    _hash_key = "payment_id"
+    id_key = "payment_id"
 
     order_status: OrderStatus
 
@@ -132,7 +132,7 @@ class FondyTransaction(TransactionBase):
         values["sender"] = values["sender_email"] or ""
         return values
 
-    def check(self):
+    def check_receipt(self):
         return self.order_status == OrderStatus.APPROVED
 
 
@@ -166,9 +166,9 @@ class FondyTransactionProcessor(TransactionProcessorBase):
 
         return True
 
-    async def get_transactions(self, *, session) -> List[Dict[str, Any]]:
+    async def get_transactions(self) -> List[Dict[str, Any]]:
         retry_options = ExponentialRetry(exceptions={ClientConnectorError})
-        retry_client = RetryClient(session, retry_options=retry_options)
+        retry_client = RetryClient(retry_options=retry_options)
         return await self.api.report(self.merchant_id, client=retry_client)
 
 

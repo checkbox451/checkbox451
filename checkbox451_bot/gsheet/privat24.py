@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import dateutil.parser
+from aiohttp import ClientSession
 from pydantic import root_validator
 
 from checkbox451_bot import __product__
@@ -44,7 +45,7 @@ class TranType(str, Enum):
 
 
 class Privat24Transaction(TransactionBase):
-    _hash_key = "TECHNICAL_TRANSACTION_ID"
+    id_key = "TECHNICAL_TRANSACTION_ID"
 
     aut_my_acc: str
     trantype: TranType
@@ -71,7 +72,7 @@ class Privat24Transaction(TransactionBase):
 
         return values
 
-    def check(self):
+    def check_receipt(self):
         return self.trantype == TranType.CREDIT and (
             not accounts() or self.aut_my_acc in accounts()
         )
@@ -104,28 +105,29 @@ class Privat24TransactionProcessor(TransactionProcessorBase):
 
         return True
 
-    async def get_transactions(self, *, session) -> List[Dict[str, Any]]:
+    async def get_transactions(self) -> List[Dict[str, Any]]:
         transactions = []
 
         exist_next_page = True
         next_page_id = ""
         start_date = date.today() - timedelta(days=7)
         while exist_next_page:
-            async with session.get(
-                URL,
-                headers={
-                    "id": self.api_id,
-                    "token": self.api_token,
-                    "User-Agent": __product__,
-                    "Content-Type": "application/json; charset=utf8",
-                },
-                params={
-                    "startDate": start_date.strftime("%d-%m-%Y"),
-                    "followId": next_page_id,
-                },
-            ) as response:
-                response.raise_for_status()
-                result = await response.json()
+            async with ClientSession() as session:
+                async with session.get(
+                    URL,
+                    headers={
+                        "id": self.api_id,
+                        "token": self.api_token,
+                        "User-Agent": __product__,
+                        "Content-Type": "application/json; charset=utf8",
+                    },
+                    params={
+                        "startDate": start_date.strftime("%d-%m-%Y"),
+                        "followId": next_page_id,
+                    },
+                ) as response:
+                    response.raise_for_status()
+                    result = await response.json()
 
             transactions += result["transactions"]
 

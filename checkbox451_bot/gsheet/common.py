@@ -8,18 +8,23 @@ from typing import Any, Dict, List
 
 import dateutil.parser
 from pydantic import BaseModel
+from sqlalchemy import update
 
 from checkbox451_bot import auth, checkbox_api, goods
 from checkbox451_bot.bot import Bot
 from checkbox451_bot.checkbox_api.helpers import aiohttp_session
 from checkbox451_bot.config import Config
+from checkbox451_bot.db import Session, Transaction
 from checkbox451_bot.gsheet import gsheet
 from checkbox451_bot.handlers import helpers
 
 
 class TransactionBase(BaseModel):
-    _hash_key: str
-    _orig: dict = None
+    id_key: str
+    _orig: dict
+    _id: str
+    _type: str
+    _db: Transaction = None
 
     ts: datetime
     code: str
@@ -33,15 +38,17 @@ class TransactionBase(BaseModel):
     def __init__(self, **data):
         super().__init__(**data)
         self._orig = data
-
-    def __hash__(self):
-        return hash(self._orig[self._hash_key])
+        self._id = str(self._orig[self.id_key])
+        self._type = type(self).__name__.removesuffix("Transaction").lower()
 
     def __lt__(self, other: "TransactionBase"):
         return self.ts < other.ts
 
-    def check(self):
+    def check_receipt(self):
         return True
+
+    def check_income(self):
+        return self.check_receipt()
 
     @property
     def orig(self):
@@ -49,6 +56,21 @@ class TransactionBase(BaseModel):
 
     def row(self):
         return [str(self.ts.date()), self.sum, self.sender]
+
+    @property
+    def id(self):
+        return self._id
+
+    @property
+    def type(self):
+        return self._type
+
+    @property
+    def db(self):
+        return self._db
+
+    def set_db(self, db):
+        self._db = db
 
 
 class TransactionProcessorBase(ABC):
@@ -60,26 +82,12 @@ class TransactionProcessorBase(ABC):
         self.polling_interval = polling_interval
 
     @abstractmethod
-    async def get_transactions(self, *, session) -> List[Dict[str, Any]]:
+    async def get_transactions(self) -> List[Dict[str, Any]]:
         pass
 
     def write_transactions(self, transactions):
         with self.transactions_file.open("w") as w:
             json.dump(transactions, w)
-
-    async def read_transactions(self, *, session):
-        if not self.transactions_file.exists():
-            try:
-                transaction = await self.get_transactions(session=session)
-            except Exception as err:
-                self.logger.exception(err)
-                return []
-
-            self.write_transactions(transaction)
-            return transaction
-
-        with self.transactions_file.open() as r:
-            return json.load(r)
 
     @staticmethod
     async def store_transaction(transaction: TransactionBase):
@@ -131,6 +139,7 @@ class TransactionProcessorBase(ABC):
         ]
 
     @classmethod
+    @aiohttp_session
     async def create_receipt(cls, transaction, *, session):
         if goods_ := cls.transaction_to_goods(transaction):
             try:
@@ -180,61 +189,75 @@ class TransactionProcessorBase(ABC):
         )
 
     @classmethod
-    def new_transaction(cls, prev, curr):
-        prev_set = {cls.transaction_cls.parse_obj(t) for t in prev}
-        curr_set = {cls.transaction_cls.parse_obj(t) for t in curr}
+    def parse_transaction(cls, curr, *, session):
+        transactions = []
+        for t in (cls.transaction_cls.parse_obj(c) for c in curr):
+            if not (t_db := session.query(Transaction).get((t.type, t.id))):
+                t_db = Transaction(type=t.type, id=t.id, ts=t.ts)
+                session.add(t_db)
+                session.commit()
+            t.set_db(t_db)
+            transactions.append(t)
 
-        return sorted(curr_set - prev_set)
+        return sorted(transactions)
 
-    async def process_transactions(self, prev, *, session):
+    @staticmethod
+    def update_db(transaction, *, session, **kwargs):
+        session.execute(
+            update(Transaction).where(
+                Transaction.type == transaction.type,
+                Transaction.id == transaction.id,
+            ),
+            kwargs,
+        )
+        session.commit()
+
+    async def process_transactions(self):
         try:
-            curr = await self.get_transactions(session=session)
+            current = await self.get_transactions()
         except Exception as err:
             self.logger.exception(err)
-            return prev
+            return []
 
-        if transactions := self.new_transaction(prev, curr):
-            temp = prev[:]
+        self.write_transactions(current)
 
-            for transaction in transactions:
-                if transaction.check():
-                    self.logger.info(transaction.orig)
+        with Session() as session:
+            if transactions := self.parse_transaction(
+                current, session=session
+            ):
+                for tr in transactions:
+                    if tr.check_receipt() and not tr.db.receipt:
+                        self.logger.info(tr.orig)
 
-                    try:
-                        await self.store_transaction(transaction)
-                    except Exception as err:
-                        self.logger.exception(err)
-                        self.write_transactions(temp)
-                        return temp
+                        try:
+                            await self.bot_notify(tr)
+                        except Exception as err:
+                            self.logger.exception(err)
 
-                    temp.append(transaction.orig)
+                        try:
+                            await self.create_receipt(tr)
+                        except Exception as err:
+                            self.logger.exception(err)
+                        else:
+                            self.update_db(tr, receipt=True, session=session)
 
-                    try:
-                        await self.bot_notify(transaction)
-                    except Exception as err:
-                        self.logger.exception(err)
+                    if tr.check_income() and not tr.db.income:
+                        try:
+                            await self.store_transaction(tr)
+                        except Exception as err:
+                            self.logger.exception(err)
+                        else:
+                            self.update_db(tr, income=True, session=session)
 
-                    try:
-                        await self.create_receipt(transaction, session=session)
-                    except Exception as err:
-                        self.logger.exception(err)
-                else:
-                    temp.append(transaction.orig)
-        else:
-            self.logger.debug("no new transactions")
-
-        self.write_transactions(curr)
-        return curr
+            else:
+                self.logger.debug("no new transactions")
 
     def pre_run_hook(self):
         return True
 
-    @aiohttp_session
-    async def run(self, *, session):
+    async def run(self):
         if not self.pre_run_hook():
             return
-
-        prev = await self.read_transactions(session=session)
 
         shift_close_time = Config().get("checkbox", "shift_close_time")
 
@@ -246,9 +269,7 @@ class TransactionProcessorBase(ABC):
         while True:
             if shift_check():
                 try:
-                    prev = await self.process_transactions(
-                        prev, session=session
-                    )
+                    await self.process_transactions()
                 except Exception as err:
                     self.logger.exception(err)
 
