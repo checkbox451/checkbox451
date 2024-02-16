@@ -237,11 +237,11 @@ class TransactionProcessorBase(ABC):
         prev = await self.read_transactions(session=session)
 
         shift_close_time = Config().get("checkbox", "shift_close_time")
-        shift_check = (
-            lambda: dateutil.parser.parse(shift_close_time) > datetime.now()
-            if shift_close_time
-            else lambda: True
-        )
+
+        def shift_check():
+            if shift_close_time:
+                return dateutil.parser.parse(shift_close_time) > datetime.now()
+            return True
 
         while True:
             if shift_check():
