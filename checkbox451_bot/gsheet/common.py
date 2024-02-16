@@ -228,17 +228,19 @@ class TransactionProcessorBase(ABC):
                 for tr in transactions:
                     log = tr.db.notify
 
-                    if not tr.db.notify:
-                        self.logger.info(tr.orig)
-
-                        try:
-                            await self.bot_notify(tr)
-                        except Exception as err:
-                            self.logger.exception(err)
-                        else:
-                            self.update_db(tr, notify=True, session=session)
-
                     if tr.check_receipt() and not tr.db.receipt:
+                        if not tr.db.notify:
+                            self.logger.info(tr.orig)
+
+                            try:
+                                await self.bot_notify(tr)
+                            except Exception as err:
+                                self.logger.exception(err)
+                            else:
+                                self.update_db(
+                                    tr, notify=True, session=session
+                                )
+
                         self.logger.info(tr.orig)
 
                         try:
