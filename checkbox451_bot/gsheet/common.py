@@ -270,20 +270,21 @@ class TransactionProcessorBase(ABC):
                 self.logger.debug("no new transactions")
 
     def pre_run_hook(self):
-        transactions = [
-            self.transaction_cls.parse_obj(t)
-            for t in json.loads(self.transactions_file.read_text())
-        ]
-        if transactions:
-            with Session() as session:
-                for tr in transactions:
-                    self.get_or_create_db(
-                        tr,
-                        notify=True,
-                        receipt=True,
-                        income=True,
-                        session=session,
-                    )
+        if self.transactions_file.exists():
+            transactions = [
+                self.transaction_cls.parse_obj(t)
+                for t in json.loads(self.transactions_file.read_text())
+            ]
+            if transactions:
+                with Session() as session:
+                    for tr in transactions:
+                        self.get_or_create_db(
+                            tr,
+                            notify=True,
+                            receipt=True,
+                            income=True,
+                            session=session,
+                        )
 
         return True
 
