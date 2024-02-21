@@ -6,7 +6,7 @@ from operator import itemgetter
 from pathlib import Path
 from typing import Any, Dict, List
 
-import dateutil.parser
+from dateutil.parser import parse as datetime_parse
 from pydantic import BaseModel
 from sqlalchemy import update
 
@@ -54,8 +54,12 @@ class TransactionBase(BaseModel):
     def orig(self):
         return self._orig
 
+    @property
+    def date(self):
+        return self.ts.date()
+
     def row(self):
-        return [str(self.ts.date()), self.sum, self.sender]
+        return str(self.date), self.sum, self.sender
 
     @property
     def id(self):
@@ -296,7 +300,7 @@ class TransactionProcessorBase(ABC):
 
         def shift_check():
             if shift_close_time:
-                return dateutil.parser.parse(shift_close_time) > datetime.now()
+                return datetime_parse(shift_close_time) > datetime.now()
             return True
 
         while True:

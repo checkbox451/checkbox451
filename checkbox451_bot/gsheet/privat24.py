@@ -7,8 +7,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List
 
-import dateutil.parser
 from aiohttp import ClientSession
+from dateutil.parser import parse as datetime_parse
 from pydantic import root_validator
 
 from checkbox451_bot import __product__
@@ -59,7 +59,7 @@ class Privat24Transaction(TransactionBase):
         if match := sender_pat.match(values["osnd"]):
             values["sender"] = match.group(1)
 
-        values["ts"] = dateutil.parser.parse(
+        values["ts"] = datetime_parse(
             values["date_time_dat_od_tim_p"], dayfirst=True
         )
 

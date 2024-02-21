@@ -6,11 +6,11 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List
 
-import dateutil.parser
 from aiohttp import ClientConnectorError, ClientSession
 from aiohttp_retry import ExponentialRetry, RetryClient
 from asyncache import cached
 from cachetools import TTLCache
+from dateutil.parser import parse as datetime_parse
 from pydantic import root_validator
 
 from checkbox451_bot import __product__
@@ -119,21 +119,40 @@ class OrderStatus(str, Enum):
         return cls._
 
 
+class SettlementStatus(str, Enum):
+    COMPLETED = "completed"
+    _ = "(ignored)"
+
+    @classmethod
+    def _missing_(cls, _):
+        return cls._
+
+
 class FondyTransaction(TransactionBase):
     _id_key = "payment_id"
 
     order_status: OrderStatus
+    settlement_date: datetime
+    settlement_status: SettlementStatus
 
     @root_validator(pre=True)
     def values(cls, values):
-        values["ts"] = dateutil.parser.parse(values["tran_time"])
+        values["ts"] = datetime_parse(values["tran_time"])
         values["code"] = values["name"] = values["order_id"]
         values["sum"] = values["actual_amount"]
         values["sender"] = values["sender_email"] or ""
+        values["settlement_date"] = datetime_parse(values["settlement_date"])
         return values
+
+    @property
+    def date(self):
+        return self.settlement_date.date()
 
     def check_receipt(self):
         return self.order_status == OrderStatus.APPROVED
+
+    def check_income(self):
+        return self.settlement_status == SettlementStatus.COMPLETED
 
 
 class FondyTransactionProcessor(TransactionProcessorBase):
