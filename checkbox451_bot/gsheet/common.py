@@ -89,10 +89,6 @@ class TransactionProcessorBase(ABC):
     async def get_transactions(self) -> List[Dict[str, Any]]:
         pass
 
-    def write_transactions(self, transactions):
-        with self.transactions_file.open("w") as w:
-            json.dump(transactions, w)
-
     @staticmethod
     async def store_transaction(transaction: TransactionBase):
         row = transaction.row()
@@ -228,8 +224,6 @@ class TransactionProcessorBase(ABC):
             self.logger.exception(err)
             return []
 
-        self.write_transactions(current)
-
         with Session() as session:
             if transactions := self.parse_transaction(
                 current, session=session
@@ -289,6 +283,8 @@ class TransactionProcessorBase(ABC):
                             income=True,
                             session=session,
                         )
+
+            self.transactions_file.unlink()
 
         return True
 

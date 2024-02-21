@@ -137,7 +137,9 @@ class FondyTransaction(TransactionBase):
 
     @root_validator(pre=True)
     def values(cls, values):
-        values["ts"] = datetime_parse(values["tran_time"])
+        values["ts"] = datetime_parse(
+            values.get("tran_time", values["order_timestart"])
+        )
         values["code"] = values["name"] = values["order_id"]
         values["sum"] = values["actual_amount"]
         values["sender"] = values["sender_email"] or ""
