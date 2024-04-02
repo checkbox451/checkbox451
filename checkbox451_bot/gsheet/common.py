@@ -169,14 +169,14 @@ class TransactionProcessorBase(ABC):
                 receipt_id,
                 session=session,
             )
-        except Exception as e:
+        except Exception:
             await helpers.broadcast(
                 None,
                 auth.SUPERVISOR,
                 Bot().send_message,
                 "Чек успішно створено",
             )
-            raise e
+            return
 
         await helpers.broadcast(
             None,
