@@ -25,6 +25,13 @@ from checkbox451_bot.gsheet.common import (
             "1234 **** **** 5678 24.01.2019 12:34:56 Вiд JANE DOE",
             "JANE DOE",
         ),
+        (
+            (
+                "1234 **** **** 5678 24.01.2019 12:34:56 "
+                "Зарахування переказу: вiд JANE DOE"
+            ),
+            "JANE DOE",
+        ),
     ],
 )
 def test_sender_pat(osnd, sender):
