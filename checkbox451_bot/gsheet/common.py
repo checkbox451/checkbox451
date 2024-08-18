@@ -78,7 +78,7 @@ class TransactionBase(BaseModel):
 
 
 class TransactionProcessorBase(ABC):
-    transactions_file: Path
+    transactions_file: Path = None
     transaction_cls: TransactionBase
 
     def __init__(self, *, logger: Any, polling_interval=15):
@@ -197,7 +197,7 @@ class TransactionProcessorBase(ABC):
         return tr_db
 
     @classmethod
-    def parse_transaction(cls, curr, *, session):
+    def parse_transactions(cls, curr, *, session):
         transactions = []
         for tr in (cls.transaction_cls.parse_obj(c) for c in curr):
             tr_db = cls.get_or_create_db(tr, session=session)
@@ -225,7 +225,7 @@ class TransactionProcessorBase(ABC):
             return []
 
         with Session() as session:
-            if transactions := self.parse_transaction(
+            if transactions := self.parse_transactions(
                 current, session=session
             ):
                 for tr in transactions:
@@ -268,7 +268,7 @@ class TransactionProcessorBase(ABC):
                 self.logger.debug("no new transactions")
 
     def pre_run_hook(self):
-        if self.transactions_file.exists():
+        if self.transactions_file and self.transactions_file.exists():
             transactions = [
                 self.transaction_cls.parse_obj(t)
                 for t in json.loads(self.transactions_file.read_text())

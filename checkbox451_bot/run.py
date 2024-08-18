@@ -34,6 +34,7 @@ def main():
     loop = asyncio.get_event_loop()
     loop.create_task(gsheet.privat24.Privat24TransactionProcessor().run())
     loop.create_task(gsheet.fondy.FondyTransactionProcessor().run())
+    loop.create_task(gsheet.mono.MonoTransactionProcessor().run())
     loop.create_task(shift_close.scheduler())
 
     handlers.start_polling()

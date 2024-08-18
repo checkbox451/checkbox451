@@ -42,3 +42,11 @@ fondy:
     secret_key: "<Fondy secret key>"
   merchant_id: <Fondy merchant ID>
   polling_interval: 15
+
+mono:
+  api:
+    token: "<Monobank API token>"
+  accounts:
+    - "accounts to watch"
+  polling_interval: 15
+  good_name_default: "<default good name for cashless receipts>"
