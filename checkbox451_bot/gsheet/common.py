@@ -234,7 +234,7 @@ class TransactionProcessorBase(ABC):
                 for tr in transactions:
                     log = tr.db.notify
 
-                    if not tr.db.notify:
+                    if tr.check() and not tr.db.notify:
                         self.logger.info(tr.orig)
 
                         try:
