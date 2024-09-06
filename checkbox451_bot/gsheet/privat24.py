@@ -82,8 +82,8 @@ class Privat24Transaction(TransactionBase):
         )
 
     def check_receipt(self):
-        return (
-            Config().get("privat24", "receipt", default=False) and self.check()
+        return super().check_receipt() and Config().get(
+            "privat24", "receipt", default=False
         )
 
 

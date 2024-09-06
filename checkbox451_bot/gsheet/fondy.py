@@ -152,10 +152,15 @@ class FondyTransaction(TransactionBase):
         return self.order_status == OrderStatus.APPROVED
 
     def check_receipt(self):
-        return Config().get("fondy", "receipt", default=False) and self.check()
+        return super().check_receipt() and Config().get(
+            "fondy", "receipt", default=False
+        )
 
     def check_income(self):
-        return self.settlement_status == SettlementStatus.COMPLETED
+        return (
+            super().check_income()
+            and self.settlement_status == SettlementStatus.COMPLETED
+        )
 
 
 class FondyTransactionProcessor(TransactionProcessorBase):
