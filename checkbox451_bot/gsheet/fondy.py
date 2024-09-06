@@ -148,14 +148,11 @@ class FondyTransaction(TransactionBase):
     def date(self):
         return self.settlement_date.date()
 
-    def check_notify(self):
+    def check(self):
         return self.order_status == OrderStatus.APPROVED
 
     def check_receipt(self):
-        return (
-            Config().get("fondy", "receipt", default=False)
-            and self.check_notify()
-        )
+        return Config().get("fondy", "receipt", default=False) and self.check()
 
     def check_income(self):
         return self.settlement_status == SettlementStatus.COMPLETED

@@ -76,15 +76,14 @@ class Privat24Transaction(TransactionBase):
 
         return values
 
-    def check_notify(self):
+    def check(self):
         return self.trantype == TranType.CREDIT and (
             not accounts() or self.aut_my_acc in accounts()
         )
 
     def check_receipt(self):
         return (
-            Config().get("privat24", "receipt", default=False)
-            and self.check_notify()
+            Config().get("privat24", "receipt", default=False) and self.check()
         )
 
 

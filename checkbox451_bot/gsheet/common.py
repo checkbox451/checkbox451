@@ -44,14 +44,14 @@ class TransactionBase(BaseModel):
     def __lt__(self, other: "TransactionBase"):
         return self.ts < other.ts
 
-    def check_notify(self):
+    def check(self):
         return True
 
     def check_receipt(self):
-        return self.check_notify()
+        return self.check()
 
     def check_income(self):
-        return self.check_notify()
+        return self.check()
 
     @property
     def orig(self):
