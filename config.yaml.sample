@@ -50,3 +50,4 @@ mono:
     - "accounts to watch"
   polling_interval: 15
   good_name_default: "<default good name for cashless receipts>"
+  receipt: false

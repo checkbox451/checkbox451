@@ -109,7 +109,10 @@ class MonoTransaction(TransactionBase):
         return values
 
     def check_receipt(self):
-        return float(self.sum) > 0
+        return (
+            Config().get("mono", "receipt", default=False)
+            and float(self.sum) > 0
+        )
 
 
 class MonoTransactionProcessor(TransactionProcessorBase):

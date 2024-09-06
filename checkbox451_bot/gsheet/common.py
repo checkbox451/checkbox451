@@ -48,7 +48,7 @@ class TransactionBase(BaseModel):
         return True
 
     def check_income(self):
-        return self.check_receipt()
+        return True
 
     @property
     def orig(self):
