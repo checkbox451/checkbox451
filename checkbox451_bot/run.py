@@ -27,6 +27,8 @@ def main():
             log.error(e)
             time.sleep(60)
             continue
+        except KeyError:
+            pass
         break
 
     checkbox_api.receipt.get_receipt_params()
